@@ -1,0 +1,26 @@
+<!-- extend base layout -->
+{% extends "base.html" %}
+<link href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css" rel="stylesheet">
+{% block content %}
+<script type="text/javascript">
+</script>
+
+<form action="" method="post" name="login">
+
+     <div class="hero-unit">
+    <p>
+
+       <span style="color: blue;"><input type="text" id="username" name="username" class="input-xlarge"
+            placeholder="Enter Username" required></span>
+       </br></br>
+       <span style="color: blue;"><input type="password" id="password" name="password" class="input-xlarge"
+            placeholder="Enter Password" required></span>
+       <br>
+       
+    </p>
+</div>
+    
+    <p><input type="submit" value="Sign In"></p>
+    
+</form>
+{% endblock %}
