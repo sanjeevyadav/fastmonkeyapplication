@@ -19,6 +19,7 @@ import base64
 import urlparse
 import cStringIO as StringIO
 
+
 class upload(Command):
 
     description = "upload binary package to PyPI"
@@ -33,7 +34,7 @@ class upload(Command):
         ('sign', 's',
          'sign files to upload using gpg'),
         ('identity=', 'i', 'GPG identity used to sign files'),
-        ]
+    ]
     boolean_options = ['show-response', 'sign']
 
     def initialize_options(self):
@@ -54,9 +55,9 @@ class upload(Command):
             if os.path.exists(rc):
                 self.announce('Using PyPI login from %s' % rc)
                 config = ConfigParser.ConfigParser({
-                        'username':'',
-                        'password':'',
-                        'repository':''})
+                    'username': '',
+                    'password': '',
+                    'repository': ''})
                 config.read(rc)
                 if not self.repository:
                     self.repository = config.get('server-login', 'repository')
@@ -69,7 +70,8 @@ class upload(Command):
 
     def run(self):
         if not self.distribution.dist_files:
-            raise DistutilsOptionError("No dist file created in earlier command")
+            raise DistutilsOptionError(
+                "No dist file created in earlier command")
         for command, pyversion, filename in self.distribution.dist_files:
             self.upload_file(command, pyversion, filename)
 
@@ -83,23 +85,23 @@ class upload(Command):
                   dry_run=self.dry_run)
 
         # Fill in the data
-        f = open(filename,'rb')
+        f = open(filename, 'rb')
         content = f.read()
         f.close()
         basename = os.path.basename(filename)
         comment = ''
-        if command=='bdist_egg' and self.distribution.has_ext_modules():
+        if command == 'bdist_egg' and self.distribution.has_ext_modules():
             comment = "built on %s" % platform.platform(terse=1)
         data = {
-            ':action':'file_upload',
-            'protcol_version':'1',
-            'name':self.distribution.get_name(),
-            'version':self.distribution.get_version(),
-            'content':(basename,content),
-            'filetype':command,
-            'pyversion':pyversion,
-            'md5_digest':md5(content).hexdigest(),
-            }
+            ':action': 'file_upload',
+            'protcol_version': '1',
+            'name': self.distribution.get_name(),
+            'version': self.distribution.get_version(),
+            'content': (basename, content),
+            'filetype': command,
+            'pyversion': pyversion,
+            'md5_digest': md5(content).hexdigest(),
+        }
         if command == 'bdist_rpm':
             dist, version, id = platform.dist()
             if dist:
@@ -110,10 +112,11 @@ class upload(Command):
 
         if self.sign:
             data['gpg_signature'] = (os.path.basename(filename) + ".asc",
-                                     open(filename+".asc").read())
+                                     open(filename + ".asc").read())
 
         # set up the authentication
-        auth = "Basic " + base64.encodestring(self.username + ":" + self.password).strip()
+        auth = "Basic " + \
+            base64.encodestring(self.username + ":" + self.password).strip()
 
         # Build up the MIME payload for the POST data
         boundary = '--------------GHSKFJDLGDS7543FJKLFHRE75642756743254'
@@ -132,7 +135,7 @@ class upload(Command):
                     fn = ""
                 value = str(value)
                 body.write(sep_boundary)
-                body.write('\nContent-Disposition: form-data; name="%s"'%key)
+                body.write('\nContent-Disposition: form-data; name="%s"' % key)
                 body.write(fn)
                 body.write("\n\n")
                 body.write(value)
@@ -142,7 +145,8 @@ class upload(Command):
         body.write("\n")
         body = body.getvalue()
 
-        self.announce("Submitting %s to %s" % (filename, self.repository), log.INFO)
+        self.announce("Submitting %s to %s" %
+                      (filename, self.repository), log.INFO)
 
         # build the Request
         # We can't use urllib2 since we need to send the Basic
@@ -155,7 +159,7 @@ class upload(Command):
         elif schema == 'https':
             http = httplib.HTTPSConnection(netloc)
         else:
-            raise AssertionError, "unsupported schema "+schema
+            raise AssertionError, "unsupported schema " + schema
 
         data = ''
         loglevel = log.INFO
@@ -163,7 +167,7 @@ class upload(Command):
             http.connect()
             http.putrequest("POST", url)
             http.putheader('Content-type',
-                           'multipart/form-data; boundary=%s'%boundary)
+                           'multipart/form-data; boundary=%s' % boundary)
             http.putheader('Content-length', str(len(body)))
             http.putheader('Authorization', auth)
             http.endheaders()
@@ -180,5 +184,4 @@ class upload(Command):
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-'*75, r.read(), '-'*75
-
+            print '-' * 75, r.read(), '-' * 75

@@ -4,6 +4,7 @@ import sys
 from pkg_resources import *
 from unittest import TestLoader, main
 
+
 class ScanningLoader(TestLoader):
 
     def loadTestsFromModule(self, module):
@@ -14,29 +15,29 @@ class ScanningLoader(TestLoader):
         the return value to the tests.
         """
         tests = []
-        if module.__name__!='setuptools.tests.doctest':  # ugh
-            tests.append(TestLoader.loadTestsFromModule(self,module))
+        if module.__name__ != 'setuptools.tests.doctest':  # ugh
+            tests.append(TestLoader.loadTestsFromModule(self, module))
 
         if hasattr(module, "additional_tests"):
             tests.append(module.additional_tests())
 
         if hasattr(module, '__path__'):
             for file in resource_listdir(module.__name__, ''):
-                if file.endswith('.py') and file!='__init__.py':
-                    submodule = module.__name__+'.'+file[:-3]
+                if file.endswith('.py') and file != '__init__.py':
+                    submodule = module.__name__ + '.' + file[:-3]
                 else:
                     if resource_exists(
-                        module.__name__, file+'/__init__.py'
+                        module.__name__, file + '/__init__.py'
                     ):
-                        submodule = module.__name__+'.'+file
+                        submodule = module.__name__ + '.' + file
                     else:
                         continue
                 tests.append(self.loadTestsFromName(submodule))
 
-        if len(tests)!=1:
+        if len(tests) != 1:
             return self.suiteClass(tests)
         else:
-            return tests[0] # don't create a nested suite for only one return
+            return tests[0]  # don't create a nested suite for only one return
 
 
 class test(Command):
@@ -46,8 +47,8 @@ class test(Command):
     description = "run unit tests after in-place build"
 
     user_options = [
-        ('test-module=','m', "Run 'test_suite' in specified module"),
-        ('test-suite=','s',
+        ('test-module=', 'm', "Run 'test_suite' in specified module"),
+        ('test-suite=', 's',
             "Test suite to run (e.g. 'some_module.test_suite')"),
     ]
 
@@ -56,14 +57,13 @@ class test(Command):
         self.test_module = None
         self.test_loader = None
 
-
     def finalize_options(self):
 
         if self.test_suite is None:
             if self.test_module is None:
                 self.test_suite = self.distribution.test_suite
             else:
-                self.test_suite = self.test_module+".test_suite"
+                self.test_suite = self.test_module + ".test_suite"
         elif self.test_module:
             raise DistutilsOptionError(
                 "You may specify a module or a suite, but not both"
@@ -72,13 +72,11 @@ class test(Command):
         self.test_args = [self.test_suite]
 
         if self.verbose:
-            self.test_args.insert(0,'--verbose')
+            self.test_args.insert(0, '--verbose')
         if self.test_loader is None:
-            self.test_loader = getattr(self.distribution,'test_loader',None)
+            self.test_loader = getattr(self.distribution, 'test_loader', None)
         if self.test_loader is None:
             self.test_loader = "setuptools.command.test:ScanningLoader"
-
-
 
     def with_project_on_sys_path(self, func):
         if getattr(self.distribution, 'use_2to3', False):
@@ -121,10 +119,10 @@ class test(Command):
             sys.modules.update(old_modules)
             working_set.__init__()
 
-
     def run(self):
         if self.distribution.install_requires:
-            self.distribution.fetch_build_eggs(self.distribution.install_requires)
+            self.distribution.fetch_build_eggs(
+                self.distribution.install_requires)
         if self.distribution.tests_require:
             self.distribution.fetch_build_eggs(self.distribution.tests_require)
 
@@ -136,45 +134,11 @@ class test(Command):
                 self.announce('running "unittest %s"' % cmd)
                 self.with_project_on_sys_path(self.run_tests)
 
-
     def run_tests(self):
         import unittest
-        loader_ep = EntryPoint.parse("x="+self.test_loader)
+        loader_ep = EntryPoint.parse("x=" + self.test_loader)
         loader_class = loader_ep.load(require=False)
         unittest.main(
-            None, None, [unittest.__file__]+self.test_args,
-            testLoader = loader_class()
+            None, None, [unittest.__file__] + self.test_args,
+            testLoader=loader_class()
         )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

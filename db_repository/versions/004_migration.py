@@ -6,9 +6,9 @@ from migrate.changeset import schema
 pre_meta = MetaData()
 post_meta = MetaData()
 followers = Table('followers', post_meta,
-    Column('follower_id', Integer),
-    Column('followed_id', Integer),
-)
+                  Column('follower_id', Integer),
+                  Column('followed_id', Integer),
+                  )
 
 
 def upgrade(migrate_engine):

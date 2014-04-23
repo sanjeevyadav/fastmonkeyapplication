@@ -1,5 +1,7 @@
 from distutils.command.bdist_wininst import bdist_wininst as _bdist_wininst
-import os, sys
+import os
+import sys
+
 
 class bdist_wininst(_bdist_wininst):
 
@@ -10,11 +12,11 @@ class bdist_wininst(_bdist_wininst):
         if self.target_version:
             installer_name = os.path.join(self.dist_dir,
                                           "%s.win32-py%s.exe" %
-                                           (fullname, self.target_version))
+                                          (fullname, self.target_version))
             pyversion = self.target_version
 
             # fix 2.5 bdist_wininst ignoring --target-version spec
-            bad = ('bdist_wininst','any',installer_name)
+            bad = ('bdist_wininst', 'any', installer_name)
             if bad in dist_files:
                 dist_files.remove(bad)
         else:
@@ -25,7 +27,7 @@ class bdist_wininst(_bdist_wininst):
         if good not in dist_files:
             dist_files.append(good)
 
-    def reinitialize_command (self, command, reinit_subcommands=0):
+    def reinitialize_command(self, command, reinit_subcommands=0):
         cmd = self.distribution.reinitialize_command(
             command, reinit_subcommands)
         if command in ('install', 'install_lib'):
@@ -38,4 +40,3 @@ class bdist_wininst(_bdist_wininst):
             _bdist_wininst.run(self)
         finally:
             self._is_running = False
-

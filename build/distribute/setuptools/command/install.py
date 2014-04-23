@@ -1,8 +1,12 @@
-import setuptools, sys, glob
+import setuptools
+import sys
+import glob
 from distutils.command.install import install as _install
 from distutils.errors import DistutilsArgError
 
+
 class install(_install):
+
     """Use easy_install to install the package, w/dependencies"""
 
     user_options = _install.user_options + [
@@ -15,7 +19,7 @@ class install(_install):
     ]
     new_commands = [
         ('install_egg_info', lambda self: True),
-        ('install_scripts',  lambda self: True),
+        ('install_scripts', lambda self: True),
     ]
     _nc = dict(new_commands)
 
@@ -46,7 +50,6 @@ class install(_install):
         self.path_file = None
         self.extra_dirs = ''
 
-
     def run(self):
         # Explicit request for old-style install?  Just do it
         if self.old_and_unmanageable or self.single_version_externally_managed:
@@ -61,21 +64,16 @@ class install(_install):
         # work.
         #
         caller = sys._getframe(2)
-        caller_module = caller.f_globals.get('__name__','')
+        caller_module = caller.f_globals.get('__name__', '')
         caller_name = caller.f_code.co_name
 
-        if caller_module != 'distutils.dist' or caller_name!='run_commands':
+        if caller_module != 'distutils.dist' or caller_name != 'run_commands':
             # We weren't called from the command line or setup(), so we
             # should run in backward-compatibility mode to support bdist_*
             # commands.
             _install.run(self)
         else:
             self.do_egg_install()
-
-
-
-
-
 
     def do_egg_install(self):
 
@@ -103,22 +101,8 @@ class install(_install):
 
 # XXX Python 3.1 doesn't see _nc if this is inside the class
 install.sub_commands = [
-        cmd for cmd in _install.sub_commands if cmd[0] not in install._nc
-    ] + install.new_commands
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    cmd for cmd in _install.sub_commands if cmd[0] not in install._nc
+] + install.new_commands
 
 
 #

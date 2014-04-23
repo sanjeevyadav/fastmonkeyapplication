@@ -14,7 +14,10 @@ from distribute.resources.workingset import iter_entry_points
 #
 # maybe we could rename it to build_metadata
 #
+
+
 class build_egg_info(Command):
+
     """Builds the distribution's .egg-info metadata directory."""
 
     description = "create a distribution's .egg-info directory"
@@ -53,7 +56,7 @@ class build_egg_info(Command):
 
         # Determine the path of the egg-info directory
         self.egg_info_path = os.path.join(self.egg_base,
-                                     to_filename(self.egg_name) + '.egg-info')
+                                          to_filename(self.egg_name) + '.egg-info')
 
         # Warn the user if there is a problem with the egg name
         if '-' in self.egg_name:
@@ -65,10 +68,10 @@ class build_egg_info(Command):
             bei = os.path.join(self.egg_base, bei)
         if os.path.exists(bei):
             log.warn(
-                "-"*78+'\n'
+                "-" * 78 + '\n'
                 "Note: Your current .egg-info directory has a '-' in its name;"
                 '\nthis will not work correctly with "setup.py develop".\n\n'
-                'Please rename %s to %s to correct this problem.\n'+'-'*78,
+                'Please rename %s to %s to correct this problem.\n' + '-' * 78,
                 bei, self.egg_info_path
             )
             self.broken_egg_info = self.egg_info_path
@@ -84,7 +87,7 @@ class build_egg_info(Command):
         # now iterates over all plugins that may add files in egg-info
         # XXX need to copy to prevent the plugin to change the metadata
         #metadata = self.distribution.metadata
-        #for entry_point in iter_entry_points('distribute.egg_info_writers'):
+        # for entry_point in iter_entry_points('distribute.egg_info_writers'):
         #    entry_point = entry_point.load()
         #    entry_point(metadata, self.egg_info_path)
 
@@ -94,4 +97,3 @@ class build_egg_info(Command):
         if not self.dry_run:
             metadata = self.distribution.metadata
             metadata.write_pkg_info(self.egg_info_path)
-

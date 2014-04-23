@@ -1,10 +1,12 @@
 from distutils.command.install_lib import install_lib as _install_lib
 import os
 
+
 class install_lib(_install_lib):
+
     """Don't add compiled flags to filenames of non-Python files"""
 
-    def _bytecode_filenames (self, py_filenames):
+    def _bytecode_filenames(self, py_filenames):
         bytecode_files = []
         for py_file in py_filenames:
             if not py_file.endswith('.py'):
@@ -28,14 +30,14 @@ class install_lib(_install_lib):
         nsp = self.distribution.namespace_packages
 
         if (nsp and self.get_finalized_command('install')
-               .single_version_externally_managed
-        ):
+            .single_version_externally_managed
+            ):
             for pkg in nsp:
                 parts = pkg.split('.')
                 while parts:
                     pkgdir = os.path.join(self.install_dir, *parts)
                     for f in '__init__.py', '__init__.pyc', '__init__.pyo':
-                        exclude[os.path.join(pkgdir,f)] = 1
+                        exclude[os.path.join(pkgdir, f)] = 1
                     parts.pop()
         return exclude
 
@@ -58,7 +60,8 @@ class install_lib(_install_lib):
 
         def pf(src, dst):
             if dst in exclude:
-                log.warn("Skipping installation of %s (namespace package)",dst)
+                log.warn(
+                    "Skipping installation of %s (namespace package)", dst)
                 return False
 
             log.info("copying %s -> %s", src, os.path.dirname(dst))
@@ -74,9 +77,3 @@ class install_lib(_install_lib):
         if exclude:
             return [f for f in outputs if f not in exclude]
         return outputs
-
-
-
-
-
-

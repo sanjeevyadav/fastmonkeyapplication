@@ -5,10 +5,11 @@ Custom exceptions raised by pytz.
 __all__ = [
     'UnknownTimeZoneError', 'InvalidTimeError', 'AmbiguousTimeError',
     'NonExistentTimeError',
-    ]
+]
 
 
 class UnknownTimeZoneError(KeyError):
+
     '''Exception raised when pytz is passed an unknown timezone.
 
     >>> isinstance(UnknownTimeZoneError(), LookupError)
@@ -25,10 +26,12 @@ class UnknownTimeZoneError(KeyError):
 
 
 class InvalidTimeError(Exception):
+
     '''Base class for invalid time exceptions.'''
 
 
 class AmbiguousTimeError(InvalidTimeError):
+
     '''Exception raised when attempting to create an ambiguous wallclock time.
 
     At the end of a DST transition period, a particular wallclock time will
@@ -40,6 +43,7 @@ class AmbiguousTimeError(InvalidTimeError):
 
 
 class NonExistentTimeError(InvalidTimeError):
+
     '''Exception raised when attempting to create a wallclock time that
     cannot exist.
 

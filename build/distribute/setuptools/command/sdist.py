@@ -1,43 +1,41 @@
 from distutils.command.sdist import sdist as _sdist
 from distutils.util import convert_path
 from distutils import log
-import os, re, sys, pkg_resources
+import os
+import re
+import sys
+import pkg_resources
 from glob import glob
 
 entities = [
-    ("&lt;","<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
+    ("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&apos;", "'"),
     ("&amp;", "&")
 ]
 
+
 def unescape(data):
-    for old,new in entities:
-        data = data.replace(old,new)
+    for old, new in entities:
+        data = data.replace(old, new)
     return data
+
 
 def re_finder(pattern, postproc=None):
     def find(dirname, filename):
-        f = open(filename,'rU')
+        f = open(filename, 'rU')
         data = f.read()
         f.close()
         for match in pattern.finditer(data):
             path = match.group(1)
             if postproc:
                 path = postproc(path)
-            yield joinpath(dirname,path)
+            yield joinpath(dirname, path)
     return find
 
-def joinpath(prefix,suffix):
+
+def joinpath(prefix, suffix):
     if not prefix:
         return suffix
-    return os.path.join(prefix,suffix)
-
-
-
-
-
-
-
-
+    return os.path.join(prefix, suffix)
 
 
 def walk_revctrl(dirname=''):
@@ -46,29 +44,31 @@ def walk_revctrl(dirname=''):
         for item in ep.load()(dirname):
             yield item
 
+
 def _default_revctrl(dirname=''):
     for path, finder in finders:
-        path = joinpath(dirname,path)
+        path = joinpath(dirname, path)
         if os.path.isfile(path):
-            for path in finder(dirname,path):
+            for path in finder(dirname, path):
                 if os.path.isfile(path):
                     yield path
                 elif os.path.isdir(path):
                     for item in _default_revctrl(path):
                         yield item
 
+
 def externals_finder(dirname, filename):
     """Find any 'svn:externals' directories"""
     found = False
-    f = open(filename,'rt')
+    f = open(filename, 'rt')
     for line in iter(f.readline, ''):    # can't use direct iter!
         parts = line.split()
-        if len(parts)==2:
-            kind,length = parts
+        if len(parts) == 2:
+            kind, length = parts
             data = f.read(int(length))
-            if kind=='K' and data=='svn:externals':
+            if kind == 'K' and data == 'svn:externals':
                 found = True
-            elif kind=='V' and found:
+            elif kind == 'V' and found:
                 f.close()
                 break
     else:
@@ -83,19 +83,20 @@ def externals_finder(dirname, filename):
 
 entries_pattern = re.compile(r'name="([^"]+)"(?![^>]+deleted="true")', re.I)
 
+
 def entries_finder(dirname, filename):
-    f = open(filename,'rU')
+    f = open(filename, 'rU')
     data = f.read()
     f.close()
     if data.startswith('10') or data.startswith('9') or data.startswith('8'):
         for record in map(str.splitlines, data.split('\n\x0c\n')[1:]):
             # subversion 1.6/1.5/1.4
-            if not record or len(record)>=6 and record[5]=="delete":
+            if not record or len(record) >= 6 and record[5] == "delete":
                 continue    # skip deleted
             yield joinpath(dirname, record[0])
     elif data.startswith('<?xml'):
         for match in entries_pattern.finditer(data):
-            yield joinpath(dirname,unescape(match.group(1)))
+            yield joinpath(dirname, unescape(match.group(1)))
     else:
         log.warn("unrecognized .svn/entries format in %s", dirname)
 
@@ -109,21 +110,8 @@ finders = [
 ]
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class sdist(_sdist):
+
     """Smart sdist that finds anything supported by revision control"""
 
     user_options = [
@@ -135,7 +123,7 @@ class sdist(_sdist):
         ('dist-dir=', 'd',
          "directory to put the source distribution archive(s) in "
          "[default: dist]"),
-        ]
+    ]
 
     negative_opt = {}
 
@@ -143,12 +131,12 @@ class sdist(_sdist):
         self.run_command('egg_info')
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist = ei_cmd.filelist
-        self.filelist.append(os.path.join(ei_cmd.egg_info,'SOURCES.txt'))
+        self.filelist.append(os.path.join(ei_cmd.egg_info, 'SOURCES.txt'))
         self.check_readme()
         self.check_metadata()
         self.make_distribution()
 
-        dist_files = getattr(self.distribution,'dist_files',[])
+        dist_files = getattr(self.distribution, 'dist_files', [])
         for file in self.archive_files:
             data = ('sdist', '', file)
             if data not in dist_files:
@@ -213,10 +201,10 @@ class sdist(_sdist):
     #  has been fixed, so only override the method if we're using an earlier
     #  Python.
     if (
-            sys.version_info < (2,7,2)
-            or (3,0) <= sys.version_info < (3,1,4)
-            or (3,2) <= sys.version_info < (3,2,1)
-        ):
+            sys.version_info < (2, 7, 2)
+            or (3, 0) <= sys.version_info < (3, 1, 4)
+            or (3, 2) <= sys.version_info < (3, 2, 1)
+    ):
         read_template = __read_template_hack
 
     def check_readme(self):
@@ -226,37 +214,22 @@ class sdist(_sdist):
                 return
         else:
             self.warn(
-                "standard file not found: should have one of " +', '.join(alts)
+                "standard file not found: should have one of " +
+                ', '.join(alts)
             )
-
 
     def make_release_tree(self, base_dir, files):
         _sdist.make_release_tree(self, base_dir, files)
 
         # Save any egg_info command line options used to create this sdist
         dest = os.path.join(base_dir, 'setup.cfg')
-        if hasattr(os,'link') and os.path.exists(dest):
+        if hasattr(os, 'link') and os.path.exists(dest):
             # unlink and re-copy, since it might be hard-linked, and
             # we don't want to change the source version
             os.unlink(dest)
             self.copy_file('setup.cfg', dest)
 
         self.get_finalized_command('egg_info').save_version_info(dest)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #

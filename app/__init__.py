@@ -13,4 +13,3 @@ lm.login_view = 'login'
 
 
 from app import views, models
-

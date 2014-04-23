@@ -8,8 +8,14 @@ from setuptools.command.sdist import sdist
 from setuptools.command.install_lib import install_lib
 from distutils.errors import DistutilsOptionError, DistutilsPlatformError
 from distutils.errors import DistutilsSetupError
-import setuptools, pkg_resources, distutils.core, distutils.dist, distutils.cmd
-import os, distutils.log
+import setuptools
+import pkg_resources
+import distutils.core
+import distutils.dist
+import distutils.cmd
+import os
+import distutils.log
+
 
 def _get_unpatched(cls):
     """Protect against re-patching the distutils if reloaded
@@ -29,29 +35,31 @@ _Distribution = _get_unpatched(_Distribution)
 
 sequence = tuple, list
 
+
 def check_importable(dist, attr, value):
     try:
-        ep = pkg_resources.EntryPoint.parse('x='+value)
+        ep = pkg_resources.EntryPoint.parse('x=' + value)
         assert not ep.extras
-    except (TypeError,ValueError,AttributeError,AssertionError):
+    except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
             "%r must be importable 'module:attrs' string (got %r)"
-            % (attr,value)
+            % (attr, value)
         )
 
 
 def assert_string_list(dist, attr, value):
     """Verify that value is a string list or None"""
     try:
-        assert ''.join(value)!=value
-    except (TypeError,ValueError,AttributeError,AssertionError):
+        assert ''.join(value) != value
+    except (TypeError, ValueError, AttributeError, AssertionError):
         raise DistutilsSetupError(
-            "%r must be a list of strings (got %r)" % (attr,value)
+            "%r must be a list of strings (got %r)" % (attr, value)
         )
+
 
 def check_nsp(dist, attr, value):
     """Verify that namespace packages are valid"""
-    assert_string_list(dist,attr,value)
+    assert_string_list(dist, attr, value)
     for nsp in value:
         if not dist.has_contents_for(nsp):
             raise DistutilsSetupError(
@@ -66,12 +74,13 @@ def check_nsp(dist, attr, value):
                     " please correct this in setup.py", nsp, parent
                 )
 
+
 def check_extras(dist, attr, value):
     """Verify that extras_require mapping is valid"""
     try:
-        for k,v in value.items():
+        for k, v in value.items():
             list(pkg_resources.parse_requirements(v))
-    except (TypeError,ValueError,AttributeError):
+    except (TypeError, ValueError, AttributeError):
         raise DistutilsSetupError(
             "'extras_require' must be a dictionary whose values are "
             "strings or lists of strings containing valid project/version "
@@ -79,23 +88,25 @@ def check_extras(dist, attr, value):
         )
 
 
-
-
 def assert_bool(dist, attr, value):
     """Verify that value is True, False, 0, or 1"""
     if bool(value) != value:
         raise DistutilsSetupError(
-            "%r must be a boolean value (got %r)" % (attr,value)
+            "%r must be a boolean value (got %r)" % (attr, value)
         )
+
+
 def check_requirements(dist, attr, value):
     """Verify that install_requires is a valid requirements list"""
     try:
         list(pkg_resources.parse_requirements(value))
-    except (TypeError,ValueError):
+    except (TypeError, ValueError):
         raise DistutilsSetupError(
             "%r must be a string or list of strings "
             "containing valid project/version requirement specifiers" % (attr,)
         )
+
+
 def check_entry_points(dist, attr, value):
     """Verify that entry_points map is parseable"""
     try:
@@ -103,26 +114,32 @@ def check_entry_points(dist, attr, value):
     except ValueError, e:
         raise DistutilsSetupError(e)
 
+
 def check_test_suite(dist, attr, value):
-    if not isinstance(value,basestring):
+    if not isinstance(value, basestring):
         raise DistutilsSetupError("test_suite must be a string")
+
 
 def check_package_data(dist, attr, value):
     """Verify that value is a dictionary of package names to glob lists"""
-    if isinstance(value,dict):
-        for k,v in value.items():
-            if not isinstance(k,str): break
-            try: iter(v)
+    if isinstance(value, dict):
+        for k, v in value.items():
+            if not isinstance(k, str):
+                break
+            try:
+                iter(v)
             except TypeError:
                 break
         else:
             return
     raise DistutilsSetupError(
-        attr+" must be a dictionary mapping package names to lists of "
+        attr + " must be a dictionary mapping package names to lists of "
         "wildcard patterns"
     )
 
+
 class Distribution(_Distribution):
+
     """Distribution with support for features, tests, and package data
 
     This is an enhanced version of 'distutils.dist.Distribution' that
@@ -204,7 +221,7 @@ class Distribution(_Distribution):
             dist._version = pkg_resources.safe_version(str(attrs['version']))
             self._patched_dist = dist
 
-    def __init__ (self, attrs=None):
+    def __init__(self, attrs=None):
         have_package_data = hasattr(self, "package_data")
         if not have_package_data:
             self.package_data = {}
@@ -216,14 +233,14 @@ class Distribution(_Distribution):
         # Make sure we have any eggs needed to interpret 'attrs'
         if attrs is not None:
             self.dependency_links = attrs.pop('dependency_links', [])
-            assert_string_list(self,'dependency_links',self.dependency_links)
+            assert_string_list(self, 'dependency_links', self.dependency_links)
         if attrs and 'setup_requires' in attrs:
             self.fetch_build_eggs(attrs.pop('setup_requires'))
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
-            if not hasattr(self,ep.name):
-                setattr(self,ep.name,None)
-        _Distribution.__init__(self,attrs)
-        if isinstance(self.metadata.version, (int,long,float)):
+            if not hasattr(self, ep.name):
+                setattr(self, ep.name, None)
+        _Distribution.__init__(self, attrs)
+        if isinstance(self.metadata.version, (int, long, float)):
             # Some people apparently take "version number" too literally :)
             self.metadata.version = str(self.metadata.version)
 
@@ -234,9 +251,9 @@ class Distribution(_Distribution):
             self._finalize_features()
         return result
 
-    def _feature_attrname(self,name):
+    def _feature_attrname(self, name):
         """Convert feature name to corresponding option attribute name"""
-        return 'with_'+name.replace('-','_')
+        return 'with_' + name.replace('-', '_')
 
     def fetch_build_eggs(self, requires):
         """Resolve pre-setup requirements"""
@@ -252,13 +269,14 @@ class Distribution(_Distribution):
             self._set_global_opts_from_features()
 
         for ep in pkg_resources.iter_entry_points('distutils.setup_keywords'):
-            value = getattr(self,ep.name,None)
+            value = getattr(self, ep.name, None)
             if value is not None:
                 ep.require(installer=self.fetch_build_egg)
                 ep.load()(self, ep.name, value)
         if getattr(self, 'convert_2to3_doctests', None):
             # XXX may convert to set here when we can rely on set being builtin
-            self.convert_2to3_doctests = [os.path.abspath(p) for p in self.convert_2to3_doctests]
+            self.convert_2to3_doctests = [
+                os.path.abspath(p) for p in self.convert_2to3_doctests]
         else:
             self.convert_2to3_doctests = []
 
@@ -269,7 +287,7 @@ class Distribution(_Distribution):
             cmd.package_index.to_scan = []
         except AttributeError:
             from setuptools.command.easy_install import easy_install
-            dist = self.__class__({'script_args':['easy_install']})
+            dist = self.__class__({'script_args': ['easy_install']})
             dist.parse_config_files()
             opts = dist.get_option_dict('easy_install')
             keep = (
@@ -287,7 +305,7 @@ class Distribution(_Distribution):
             cmd = easy_install(
                 dist, args=["x"], install_dir=os.curdir, exclude_scripts=True,
                 always_copy=False, build_directory=None, editable=False,
-                upgrade=False, multi_version=True, no_report = True
+                upgrade=False, multi_version=True, no_report=True
             )
             cmd.ensure_finalized()
             self._egg_fetcher = cmd
@@ -299,65 +317,48 @@ class Distribution(_Distribution):
         go = []
         no = self.negative_opt.copy()
 
-        for name,feature in self.features.items():
-            self._set_feature(name,None)
+        for name, feature in self.features.items():
+            self._set_feature(name, None)
             feature.validate(self)
 
             if feature.optional:
                 descr = feature.description
                 incdef = ' (default)'
-                excdef=''
+                excdef = ''
                 if not feature.include_by_default():
                     excdef, incdef = incdef, excdef
 
-                go.append(('with-'+name, None, 'include '+descr+incdef))
-                go.append(('without-'+name, None, 'exclude '+descr+excdef))
-                no['without-'+name] = 'with-'+name
+                go.append(('with-' + name, None, 'include ' + descr + incdef))
+                go.append(
+                    ('without-' + name, None, 'exclude ' + descr + excdef))
+                no['without-' + name] = 'with-' + name
 
         self.global_options = self.feature_options = go + self.global_options
         self.negative_opt = self.feature_negopt = no
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def _finalize_features(self):
         """Add/remove features and resolve dependencies between them"""
 
         # First, flag all the enabled items (and thus their dependencies)
-        for name,feature in self.features.items():
+        for name, feature in self.features.items():
             enabled = self.feature_is_included(name)
             if enabled or (enabled is None and feature.include_by_default()):
                 feature.include_in(self)
-                self._set_feature(name,1)
+                self._set_feature(name, 1)
 
         # Then disable the rest, so that off-by-default features don't
         # get flagged as errors when they're required by an enabled feature
-        for name,feature in self.features.items():
+        for name, feature in self.features.items():
             if not self.feature_is_included(name):
                 feature.exclude_from(self)
-                self._set_feature(name,0)
-
+                self._set_feature(name, 0)
 
     def get_command_class(self, command):
         """Pluggable version of get_command_class()"""
         if command in self.cmdclass:
             return self.cmdclass[command]
 
-        for ep in pkg_resources.iter_entry_points('distutils.commands',command):
+        for ep in pkg_resources.iter_entry_points('distutils.commands', command):
             ep.require(installer=self.fetch_build_egg)
             self.cmdclass[command] = cmdclass = ep.load()
             return cmdclass
@@ -367,34 +368,31 @@ class Distribution(_Distribution):
     def print_commands(self):
         for ep in pkg_resources.iter_entry_points('distutils.commands'):
             if ep.name not in self.cmdclass:
-                cmdclass = ep.load(False) # don't require extras, we're not running
+                # don't require extras, we're not running
+                cmdclass = ep.load(False)
                 self.cmdclass[ep.name] = cmdclass
         return _Distribution.print_commands(self)
 
-
-
-
-
-    def _set_feature(self,name,status):
+    def _set_feature(self, name, status):
         """Set feature's inclusion status"""
-        setattr(self,self._feature_attrname(name),status)
+        setattr(self, self._feature_attrname(name), status)
 
-    def feature_is_included(self,name):
+    def feature_is_included(self, name):
         """Return 1 if feature is included, 0 if excluded, 'None' if unknown"""
-        return getattr(self,self._feature_attrname(name))
+        return getattr(self, self._feature_attrname(name))
 
-    def include_feature(self,name):
+    def include_feature(self, name):
         """Request inclusion of feature named 'name'"""
 
-        if self.feature_is_included(name)==0:
+        if self.feature_is_included(name) == 0:
             descr = self.features[name].description
             raise DistutilsOptionError(
-               descr + " is required, but was excluded or is not available"
-           )
+                descr + " is required, but was excluded or is not available"
+            )
         self.features[name].include_in(self)
-        self._set_feature(name,1)
+        self._set_feature(name, 1)
 
-    def include(self,**attrs):
+    def include(self, **attrs):
         """Add items to distribution that are named in keyword arguments
 
         For example, 'dist.exclude(py_modules=["x"])' would add 'x' to
@@ -409,96 +407,87 @@ class Distribution(_Distribution):
         will try to call 'dist._include_foo({"bar":"baz"})', which can then
         handle whatever special inclusion logic is needed.
         """
-        for k,v in attrs.items():
-            include = getattr(self, '_include_'+k, None)
+        for k, v in attrs.items():
+            include = getattr(self, '_include_' + k, None)
             if include:
                 include(v)
             else:
-                self._include_misc(k,v)
+                self._include_misc(k, v)
 
-    def exclude_package(self,package):
+    def exclude_package(self, package):
         """Remove packages, modules, and extensions in named package"""
 
-        pfx = package+'.'
+        pfx = package + '.'
         if self.packages:
             self.packages = [
                 p for p in self.packages
-                    if p != package and not p.startswith(pfx)
+                if p != package and not p.startswith(pfx)
             ]
 
         if self.py_modules:
             self.py_modules = [
                 p for p in self.py_modules
-                    if p != package and not p.startswith(pfx)
+                if p != package and not p.startswith(pfx)
             ]
 
         if self.ext_modules:
             self.ext_modules = [
                 p for p in self.ext_modules
-                    if p.name != package and not p.name.startswith(pfx)
+                if p.name != package and not p.name.startswith(pfx)
             ]
 
-
-    def has_contents_for(self,package):
+    def has_contents_for(self, package):
         """Return true if 'exclude_package(package)' would do something"""
 
-        pfx = package+'.'
+        pfx = package + '.'
 
         for p in self.iter_distribution_names():
-            if p==package or p.startswith(pfx):
+            if p == package or p.startswith(pfx):
                 return True
 
-
-
-
-
-
-
-
-
-
-    def _exclude_misc(self,name,value):
+    def _exclude_misc(self, name, value):
         """Handle 'exclude()' for list/tuple attrs without a special handler"""
-        if not isinstance(value,sequence):
+        if not isinstance(value, sequence):
             raise DistutilsSetupError(
                 "%s: setting must be a list or tuple (%r)" % (name, value)
             )
         try:
-            old = getattr(self,name)
+            old = getattr(self, name)
         except AttributeError:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
             )
-        if old is not None and not isinstance(old,sequence):
+        if old is not None and not isinstance(old, sequence):
             raise DistutilsSetupError(
-                name+": this setting cannot be changed via include/exclude"
+                name + ": this setting cannot be changed via include/exclude"
             )
         elif old:
-            setattr(self,name,[item for item in old if item not in value])
+            setattr(self, name, [item for item in old if item not in value])
 
-    def _include_misc(self,name,value):
+    def _include_misc(self, name, value):
         """Handle 'include()' for list/tuple attrs without a special handler"""
 
-        if not isinstance(value,sequence):
+        if not isinstance(value, sequence):
             raise DistutilsSetupError(
                 "%s: setting must be a list (%r)" % (name, value)
             )
         try:
-            old = getattr(self,name)
+            old = getattr(self, name)
         except AttributeError:
             raise DistutilsSetupError(
                 "%s: No such distribution setting" % name
             )
         if old is None:
-            setattr(self,name,value)
-        elif not isinstance(old,sequence):
+            setattr(self, name, value)
+        elif not isinstance(old, sequence):
             raise DistutilsSetupError(
-                name+": this setting cannot be changed via include/exclude"
+                name + ": this setting cannot be changed via include/exclude"
             )
         else:
-            setattr(self,name,old+[item for item in value if item not in old])
+            setattr(
+                self, name, old + [item for item in value if item not in old])
 
-    def exclude(self,**attrs):
+    def exclude(self, **attrs):
         """Remove items from distribution that are named in keyword arguments
 
         For example, 'dist.exclude(py_modules=["x"])' would remove 'x' from
@@ -514,30 +503,19 @@ class Distribution(_Distribution):
         will try to call 'dist._exclude_foo({"bar":"baz"})', which can then
         handle whatever special exclusion logic is needed.
         """
-        for k,v in attrs.items():
-            exclude = getattr(self, '_exclude_'+k, None)
+        for k, v in attrs.items():
+            exclude = getattr(self, '_exclude_' + k, None)
             if exclude:
                 exclude(v)
             else:
-                self._exclude_misc(k,v)
+                self._exclude_misc(k, v)
 
-    def _exclude_packages(self,packages):
-        if not isinstance(packages,sequence):
+    def _exclude_packages(self, packages):
+        if not isinstance(packages, sequence):
             raise DistutilsSetupError(
                 "packages: setting must be a list or tuple (%r)" % (packages,)
             )
         map(self.exclude_package, packages)
-
-
-
-
-
-
-
-
-
-
-
 
     def _parse_command_opts(self, parser, args):
         # Remove --with-X/--without-X options when processing command args
@@ -548,37 +526,22 @@ class Distribution(_Distribution):
         command = args[0]
         aliases = self.get_option_dict('aliases')
         while command in aliases:
-            src,alias = aliases[command]
+            src, alias = aliases[command]
             del aliases[command]    # ensure each alias can expand only once!
             import shlex
-            args[:1] = shlex.split(alias,True)
+            args[:1] = shlex.split(alias, True)
             command = args[0]
 
         nargs = _Distribution._parse_command_opts(self, parser, args)
 
         # Handle commands that want to consume all remaining arguments
         cmd_class = self.get_command_class(command)
-        if getattr(cmd_class,'command_consumes_arguments',None):
+        if getattr(cmd_class, 'command_consumes_arguments', None):
             self.get_option_dict(command)['args'] = ("command line", nargs)
             if nargs is not None:
                 return []
 
         return nargs
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def get_cmdline_options(self):
         """Return a '{cmd: {opt:val}}' map of all command-line options
@@ -592,34 +555,33 @@ class Distribution(_Distribution):
 
         d = {}
 
-        for cmd,opts in self.command_options.items():
+        for cmd, opts in self.command_options.items():
 
-            for opt,(src,val) in opts.items():
+            for opt, (src, val) in opts.items():
 
                 if src != "command line":
                     continue
 
-                opt = opt.replace('_','-')
+                opt = opt.replace('_', '-')
 
-                if val==0:
+                if val == 0:
                     cmdobj = self.get_command_obj(cmd)
                     neg_opt = self.negative_opt.copy()
-                    neg_opt.update(getattr(cmdobj,'negative_opt',{}))
-                    for neg,pos in neg_opt.items():
-                        if pos==opt:
-                            opt=neg
-                            val=None
+                    neg_opt.update(getattr(cmdobj, 'negative_opt', {}))
+                    for neg, pos in neg_opt.items():
+                        if pos == opt:
+                            opt = neg
+                            val = None
                             break
                     else:
                         raise AssertionError("Shouldn't be able to get here")
 
-                elif val==1:
+                elif val == 1:
                     val = None
 
-                d.setdefault(cmd,{})[opt] = val
+                d.setdefault(cmd, {})[opt] = val
 
         return d
-
 
     def iter_distribution_names(self):
         """Yield all packages, modules, and extension names in distribution"""
@@ -631,7 +593,7 @@ class Distribution(_Distribution):
             yield module
 
         for ext in self.ext_modules or ():
-            if isinstance(ext,tuple):
+            if isinstance(ext, tuple):
                 name, buildinfo = ext
             else:
                 name = ext.name
@@ -644,25 +606,8 @@ for module in distutils.dist, distutils.core, distutils.cmd:
     module.Distribution = Distribution
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class Feature:
+
     """A subset of the distribution that can be excluded if unneeded/wanted
 
     Features are created using these keyword arguments:
@@ -712,24 +657,26 @@ class Feature:
     Aside from the methods, the only feature attributes that distributions look
     at are 'description' and 'optional'.
     """
+
     def __init__(self, description, standard=False, available=True,
-        optional=True, require_features=(), remove=(), **extras
-    ):
+                 optional=True, require_features=(), remove=(), **extras
+                 ):
 
         self.description = description
         self.standard = standard
         self.available = available
         self.optional = optional
-        if isinstance(require_features,(str,Require)):
+        if isinstance(require_features, (str, Require)):
             require_features = require_features,
 
         self.require_features = [
-            r for r in require_features if isinstance(r,str)
+            r for r in require_features if isinstance(r, str)
         ]
-        er = [r for r in require_features if not isinstance(r,str)]
-        if er: extras['require_features'] = er
+        er = [r for r in require_features if not isinstance(r, str)]
+        if er:
+            extras['require_features'] = er
 
-        if isinstance(remove,str):
+        if isinstance(remove, str):
             remove = remove,
         self.remove = remove
         self.extras = extras
@@ -744,8 +691,7 @@ class Feature:
         """Should this feature be included by default?"""
         return self.available and self.standard
 
-    def include_in(self,dist):
-
+    def include_in(self, dist):
         """Ensure feature and its requirements are included in distribution
 
         You may override this in a subclass to perform additional operations on
@@ -756,7 +702,7 @@ class Feature:
 
         if not self.available:
             raise DistutilsPlatformError(
-                self.description+" is required,"
+                self.description + " is required,"
                 "but is not available on this platform"
             )
 
@@ -765,10 +711,7 @@ class Feature:
         for f in self.require_features:
             dist.include_feature(f)
 
-
-
-    def exclude_from(self,dist):
-
+    def exclude_from(self, dist):
         """Ensure feature is excluded from distribution
 
         You may override this in a subclass to perform additional operations on
@@ -783,10 +726,7 @@ class Feature:
             for item in self.remove:
                 dist.exclude_package(item)
 
-
-
-    def validate(self,dist):
-
+    def validate(self, dist):
         """Verify that feature makes sense in context of distribution
 
         This method is called by the distribution just before it parses its
@@ -806,7 +746,6 @@ class Feature:
                 )
 
 
-
 def check_packages(dist, attr, value):
     for pkgname in value:
         if not re.match(r'\w+(\.\w+)*', pkgname):
@@ -814,4 +753,3 @@ def check_packages(dist, attr, value):
                 "WARNING: %r not a valid package name; please use only"
                 ".-separated package names in setup.py", pkgname
             )
-

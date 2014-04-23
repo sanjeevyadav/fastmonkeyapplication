@@ -11,8 +11,10 @@ _fill_lock = RLock()
 
 
 class LazyDict(DictMixin):
+
     """Dictionary populated on first use."""
     data = None
+
     def __getitem__(self, key):
         if self.data is None:
             _fill_lock.acquire()
@@ -65,6 +67,7 @@ class LazyDict(DictMixin):
 
 
 class LazyList(list):
+
     """List populated on first use."""
 
     _props = [
@@ -115,6 +118,7 @@ LazyList._props = [prop for prop in LazyList._props if hasattr(list, prop)]
 
 
 class LazySet(set):
+
     """Set populated on first use."""
 
     _props = (

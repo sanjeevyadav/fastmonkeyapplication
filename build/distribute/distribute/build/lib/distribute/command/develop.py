@@ -7,14 +7,16 @@ from distutils import log
 from distutils.command.install import install
 from distribute.command.build_egg_info import build_egg_info
 
+
 class develop(install):
+
     """Installs the package in development mode by linking the source
     to site-packages."""
 
     description = "install package in 'development mode'"
 
     user_options = install.user_options + \
-            [("uninstall", "u", "Uninstall this source package")]
+        [("uninstall", "u", "Uninstall this source package")]
 
     def initialize_options(self):
         install.initialize_options(self)
@@ -61,4 +63,3 @@ class develop(install):
         if self.distribution.scripts:
             # XXX should also check for entry point scripts!
             log.warn("Note: you must uninstall or replace scripts manually!")
-

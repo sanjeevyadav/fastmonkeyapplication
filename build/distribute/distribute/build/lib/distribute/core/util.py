@@ -4,6 +4,7 @@ from string import maketrans
 from distutils.util import convert_path
 from fnmatch import fnmatchcase
 
+
 def find_packages(where='.', exclude=()):
     """Return a list all Python packages found within directory 'where'
 
@@ -26,8 +27,8 @@ def find_packages(where='.', exclude=()):
 
             # check if its a package
             if os.path.isfile(os.path.join(fn, '__init__.py')):
-                out.append(prefix+name)
-                stack.append((fn, prefix+name+'.'))
+                out.append(prefix + name)
+                stack.append((fn, prefix + name + '.'))
 
     res = []
 
@@ -45,6 +46,7 @@ def find_packages(where='.', exclude=()):
 
 SPACE_TRANS = maketrans(' ', '.')
 DASH_TRANS = maketrans('-', '_')
+
 
 def egginfo_dirname(name, version):
     """Returns the egg-info directory name of a project.

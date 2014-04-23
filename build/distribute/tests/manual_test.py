@@ -13,6 +13,7 @@ from urllib2 import urlopen
 
 try:
     import subprocess
+
     def _system_call(*args):
         assert subprocess.call(args) == 0
 except ImportError:
@@ -26,6 +27,7 @@ except ImportError:
                 return arg
             args = [quote(arg) for arg in args]
         assert os.system(' '.join(args)) == 0
+
 
 def tempdir(func):
     def _tempdir(*args, **kwargs):
@@ -80,6 +82,7 @@ def test_virtualenv():
     assert 'distribute' in res
     assert 'setuptools' not in res
 
+
 @tempdir
 def test_full():
     """virtualenv + pip + buildout"""
@@ -107,4 +110,3 @@ def test_full():
 if __name__ == '__main__':
     test_virtualenv()
     test_full()
-

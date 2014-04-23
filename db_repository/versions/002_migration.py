@@ -6,11 +6,11 @@ from migrate.changeset import schema
 pre_meta = MetaData()
 post_meta = MetaData()
 post = Table('post', post_meta,
-    Column('id', Integer, primary_key=True, nullable=False),
-    Column('body', String(length=140)),
-    Column('timestamp', DateTime),
-    Column('user_id', Integer),
-)
+             Column('id', Integer, primary_key=True, nullable=False),
+             Column('body', String(length=140)),
+             Column('timestamp', DateTime),
+             Column('user_id', Integer),
+             )
 
 
 def upgrade(migrate_engine):

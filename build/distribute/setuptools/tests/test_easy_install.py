@@ -1,11 +1,14 @@
 """Easy install Tests
 """
 import sys
-import os, shutil, tempfile, unittest
+import os
+import shutil
+import tempfile
+import unittest
 import site
 from StringIO import StringIO
 from setuptools.command.easy_install import easy_install, get_script_args, main
-from setuptools.command.easy_install import  PthDistributions
+from setuptools.command.easy_install import PthDistributions
 from setuptools.command import easy_install as easy_install_pkg
 from setuptools.dist import Distribution
 from pkg_resources import Distribution as PRDistribution
@@ -20,7 +23,9 @@ except ImportError:
     _MULTIPROC = False
     _LOG = None
 
+
 class FakeDist(object):
+
     def get_entry_map(self, group):
         if group != 'console_scripts':
             return {}
@@ -47,6 +52,7 @@ from setuptools import setup
 
 setup(name='foo')
 """
+
 
 class TestEasyInstallTest(unittest.TestCase):
 
@@ -110,7 +116,7 @@ class TestEasyInstallTest(unittest.TestCase):
         # the project level
         dist = Distribution()
         cmd = easy_install(dist)
-        cmd.check_pth_processing = lambda : True
+        cmd.check_pth_processing = lambda: True
         cmd.no_find_links = True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
@@ -120,7 +126,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
         # let's try without it (default behavior)
         cmd = easy_install(dist)
-        cmd.check_pth_processing = lambda : True
+        cmd.check_pth_processing = lambda: True
         cmd.find_links = ['link1', 'link2']
         cmd.install_dir = os.path.join(tempfile.mkdtemp(), 'ok')
         cmd.args = ['ok']
@@ -131,6 +137,7 @@ class TestEasyInstallTest(unittest.TestCase):
 
 
 class TestPTHFileWriter(unittest.TestCase):
+
     def test_add_from_cwd_site_sets_dirty(self):
         '''a pth file manager should set dirty
         if a distribution is in site but also the cwd
@@ -173,7 +180,7 @@ class TestUserInstallTest(unittest.TestCase):
     def tearDown(self):
         os.chdir(self.old_cwd)
         shutil.rmtree(self.dir)
-        if sys.version >=  "2.6":
+        if sys.version >= "2.6":
             shutil.rmtree(site.USER_BASE)
             shutil.rmtree(site.USER_SITE)
             site.USER_BASE = self.old_base
@@ -182,10 +189,10 @@ class TestUserInstallTest(unittest.TestCase):
             easy_install_pkg.__file__ = self.old_file
 
     def test_user_install_implied(self):
-        easy_install_pkg.HAS_USER_SITE = True # disabled sometimes
-        #XXX: replace with something meaningfull
+        easy_install_pkg.HAS_USER_SITE = True  # disabled sometimes
+        # XXX: replace with something meaningfull
         if sys.version < "2.6":
-            return #SKIP
+            return  # SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
@@ -199,10 +206,10 @@ class TestUserInstallTest(unittest.TestCase):
         _LOG.info('this should not break')
 
     def test_user_install_not_implied_without_usersite_enabled(self):
-        easy_install_pkg.HAS_USER_SITE = False # usually enabled
-        #XXX: replace with something meaningfull
+        easy_install_pkg.HAS_USER_SITE = False  # usually enabled
+        # XXX: replace with something meaningfull
         if sys.version < "2.6":
-            return #SKIP
+            return  # SKIP
         dist = Distribution()
         dist.script_name = 'setup.py'
         cmd = easy_install(dist)
@@ -249,4 +256,3 @@ class TestUserInstallTest(unittest.TestCase):
                 os.environ['PYTHONPATH'] = old_ppath
             else:
                 del os.environ['PYTHONPATH']
-

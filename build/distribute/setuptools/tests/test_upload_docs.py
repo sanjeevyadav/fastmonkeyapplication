@@ -1,6 +1,12 @@
 """build_ext tests
 """
-import sys, os, shutil, tempfile, unittest, site, zipfile
+import sys
+import os
+import shutil
+import tempfile
+import unittest
+import site
+import zipfile
 from setuptools.command.upload_docs import upload_docs
 from setuptools.dist import Distribution
 
@@ -10,7 +16,9 @@ from setuptools import setup
 setup(name='foo')
 """
 
+
 class TestUploadDocsTest(unittest.TestCase):
+
     def setUp(self):
         self.dir = tempfile.mkdtemp()
         setup = os.path.join(self.dir, 'setup.py')
@@ -58,8 +66,6 @@ class TestUploadDocsTest(unittest.TestCase):
 
         assert zipfile.is_zipfile(zip_file)
 
-        zip_f = zipfile.ZipFile(zip_file) # woh...
+        zip_f = zipfile.ZipFile(zip_file)  # woh...
 
         assert zip_f.namelist() == ['index.html']
-
-

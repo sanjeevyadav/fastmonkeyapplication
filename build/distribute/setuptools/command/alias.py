@@ -1,27 +1,31 @@
-import distutils, os
+import distutils
+import os
 from setuptools import Command
 from distutils.util import convert_path
 from distutils import log
 from distutils.errors import *
 from setuptools.command.setopt import edit_config, option_base, config_file
 
+
 def shquote(arg):
     """Quote an argument for later parsing by shlex.split()"""
     for c in '"', "'", "\\", "#":
-        if c in arg: return repr(arg)
-    if arg.split()<>[arg]:
+        if c in arg:
+            return repr(arg)
+    if arg.split() <> [arg]:
         return repr(arg)
-    return arg        
+    return arg
 
 
 class alias(option_base):
+
     """Define a shortcut that invokes one or more commands"""
-    
+
     description = "define a shortcut to invoke one or more commands"
     command_consumes_arguments = True
 
     user_options = [
-        ('remove',   'r', 'remove (unset) the alias'), 
+        ('remove',   'r', 'remove (unset) the alias'),
     ] + option_base.user_options
 
     boolean_options = option_base.boolean_options + ['remove']
@@ -33,7 +37,7 @@ class alias(option_base):
 
     def finalize_options(self):
         option_base.finalize_options(self)
-        if self.remove and len(self.args)<>1:
+        if self.remove and len(self.args) <> 1:
             raise DistutilsOptionError(
                 "Must specify exactly one argument (the alias name) when "
                 "using --remove"
@@ -49,7 +53,7 @@ class alias(option_base):
                 print "setup.py alias", format_alias(alias, aliases)
             return
 
-        elif len(self.args)==1:
+        elif len(self.args) == 1:
             alias, = self.args
             if self.remove:
                 command = None
@@ -61,9 +65,9 @@ class alias(option_base):
                 return
         else:
             alias = self.args[0]
-            command = ' '.join(map(shquote,self.args[1:]))
+            command = ' '.join(map(shquote, self.args[1:]))
 
-        edit_config(self.filename, {'aliases': {alias:command}}, self.dry_run)
+        edit_config(self.filename, {'aliases': {alias: command}}, self.dry_run)
 
 
 def format_alias(name, aliases):
@@ -76,7 +80,4 @@ def format_alias(name, aliases):
         source = ''
     else:
         source = '--filename=%r' % source
-    return source+name+' '+command
-            
-
-
+    return source + name + ' ' + command

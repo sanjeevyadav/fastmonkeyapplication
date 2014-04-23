@@ -6,12 +6,12 @@ from migrate.changeset import schema
 pre_meta = MetaData()
 post_meta = MetaData()
 users = Table('users', post_meta,
-    Column('id', Integer, primary_key=True, nullable=False),
-    Column('username', String(length=64)),
-    Column('email', String(length=120)),
-    Column('password', String(length=64)),
-    Column('registred_on', String(length=64))
-)
+              Column('id', Integer, primary_key=True, nullable=False),
+              Column('username', String(length=64)),
+              Column('email', String(length=120)),
+              Column('password', String(length=64)),
+              Column('registred_on', String(length=64))
+              )
 
 
 def upgrade(migrate_engine):

@@ -4,7 +4,9 @@
 # finally, a kludge to track .rpm files for uploading when run on Python <2.5.
 
 from distutils.command.bdist_rpm import bdist_rpm as _bdist_rpm
-import sys, os
+import sys
+import os
+
 
 class bdist_rpm(_bdist_rpm):
 
@@ -12,14 +14,14 @@ class bdist_rpm(_bdist_rpm):
         _bdist_rpm.initialize_options(self)
         self.no_egg = None
 
-    if sys.version<"2.5":
+    if sys.version < "2.5":
         # Track for uploading any .rpm file(s) moved to self.dist_dir
         def move_file(self, src, dst, level=1):
             _bdist_rpm.move_file(self, src, dst, level)
-            if dst==self.dist_dir and src.endswith('.rpm'):
-                getattr(self.distribution,'dist_files',[]).append(
+            if dst == self.dist_dir and src.endswith('.rpm'):
+                getattr(self.distribution, 'dist_files', []).append(
                     ('bdist_rpm',
-                    src.endswith('.src.rpm') and 'any' or sys.version[:3],
+                     src.endswith('.src.rpm') and 'any' or sys.version[:3],
                      os.path.join(dst, os.path.basename(src)))
                 )
 
@@ -27,25 +29,13 @@ class bdist_rpm(_bdist_rpm):
         self.run_command('egg_info')    # ensure distro name is up-to-date
         _bdist_rpm.run(self)
 
-
-
-
-
-
-
-
-
-
-
-
-
     def _make_spec_file(self):
         version = self.distribution.get_version()
-        rpmversion = version.replace('-','_')
+        rpmversion = version.replace('-', '_')
         spec = _bdist_rpm._make_spec_file(self)
-        line23 = '%define version '+version
-        line24 = '%define version '+rpmversion
-        spec  = [
+        line23 = '%define version ' + version
+        line24 = '%define version ' + rpmversion
+        spec = [
             line.replace(
                 "Source0: %{name}-%{version}.tar",
                 "Source0: %{name}-%{unmangled_version}.tar"
@@ -55,28 +45,9 @@ class bdist_rpm(_bdist_rpm):
             ).replace(
                 "%setup",
                 "%setup -n %{name}-%{unmangled_version}"
-            ).replace(line23,line24)
+            ).replace(line23, line24)
             for line in spec
         ]
-        spec.insert(spec.index(line24)+1, "%define unmangled_version "+version)
+        spec.insert(
+            spec.index(line24) + 1, "%define unmangled_version " + version)
         return spec
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

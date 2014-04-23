@@ -1,7 +1,10 @@
 """develop tests
 """
 import sys
-import os, shutil, tempfile, unittest
+import os
+import shutil
+import tempfile
+import unittest
 import tempfile
 import site
 from StringIO import StringIO
@@ -16,6 +19,7 @@ from setuptools import setup
 
 setup(name='foo')
 """
+
 
 class TestDevelopTest(unittest.TestCase):
 
@@ -75,8 +79,7 @@ class TestDevelopTest(unittest.TestCase):
                 dist = Distribution({'setup_requires': ['I_DONT_EXIST']})
             except DistutilsError, e:
                 error = str(e)
-                if error ==  wanted:
+                if error == wanted:
                     pass
         finally:
             os.chdir(old_dir)
-

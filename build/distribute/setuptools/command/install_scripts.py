@@ -1,10 +1,12 @@
 from distutils.command.install_scripts import install_scripts \
-     as _install_scripts
+    as _install_scripts
 from pkg_resources import Distribution, PathMetadata, ensure_directory
 import os
 from distutils import log
 
+
 class install_scripts(_install_scripts):
+
     """Do normal script install, plus any egg_info wrapper scripts"""
 
     def initialize_options(self):
@@ -30,7 +32,7 @@ class install_scripts(_install_scripts):
             ei_cmd.egg_name, ei_cmd.egg_version,
         )
         bs_cmd = self.get_finalized_command('build_scripts')
-        executable = getattr(bs_cmd,'executable',sys_executable)
+        executable = getattr(bs_cmd, 'executable', sys_executable)
         is_wininst = getattr(
             self.get_finalized_command("bdist_wininst"), '_is_running', False
         )
@@ -46,8 +48,7 @@ class install_scripts(_install_scripts):
 
         if not self.dry_run:
             ensure_directory(target)
-            f = open(target,"w"+mode)
+            f = open(target, "w" + mode)
             f.write(contents)
             f.close()
-            chmod(target,0755)
-
+            chmod(target, 0755)

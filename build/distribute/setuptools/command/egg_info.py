@@ -3,7 +3,9 @@
 Create a distribution's .egg-info directory and contents"""
 
 # This module should be kept compatible with Python 2.3
-import os, re, sys
+import os
+import re
+import sys
 from setuptools import Command
 from distutils.errors import *
 from distutils import log
@@ -13,6 +15,7 @@ from distutils.filelist import FileList
 from pkg_resources import parse_requirements, safe_name, parse_version, \
     safe_version, yield_lines, EntryPoint, iter_entry_points, to_filename
 from sdist import walk_revctrl
+
 
 class egg_info(Command):
     description = "create a distribution's .egg-info directory"
@@ -33,12 +36,6 @@ class egg_info(Command):
     negative_opt = {'no-svn-revision': 'tag-svn-revision',
                     'no-date': 'tag-date'}
 
-
-
-
-
-
-
     def initialize_options(self):
         self.egg_name = None
         self.egg_version = None
@@ -55,55 +52,37 @@ class egg_info(Command):
         edit_config(
             filename,
             {'egg_info':
-                {'tag_svn_revision':0, 'tag_date': 0, 'tag_build': self.tags()}
-            }
+                {'tag_svn_revision': 0, 'tag_date': 0,
+                    'tag_build': self.tags()}
+             }
         )
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def finalize_options (self):
+    def finalize_options(self):
         self.egg_name = safe_name(self.distribution.get_name())
         self.vtags = self.tags()
         self.egg_version = self.tagged_version()
 
         try:
             list(
-                parse_requirements('%s==%s' % (self.egg_name,self.egg_version))
+                parse_requirements(
+                    '%s==%s' % (self.egg_name, self.egg_version))
             )
         except ValueError:
             raise DistutilsOptionError(
                 "Invalid distribution name or version syntax: %s-%s" %
-                (self.egg_name,self.egg_version)
+                (self.egg_name, self.egg_version)
             )
 
         if self.egg_base is None:
             dirs = self.distribution.package_dir
-            self.egg_base = (dirs or {}).get('',os.curdir)
+            self.egg_base = (dirs or {}).get('', os.curdir)
 
         self.ensure_dirname('egg_base')
-        self.egg_info = to_filename(self.egg_name)+'.egg-info'
+        self.egg_info = to_filename(self.egg_name) + '.egg-info'
         if self.egg_base != os.curdir:
             self.egg_info = os.path.join(self.egg_base, self.egg_info)
-        if '-' in self.egg_name: self.check_broken_egg_info()
+        if '-' in self.egg_name:
+            self.check_broken_egg_info()
 
         # Set package version for the benefit of dumber commands
         # (e.g. sdist, bdist_wininst, etc.)
@@ -115,11 +94,10 @@ class egg_info(Command):
         # to the version info
         #
         pd = self.distribution._patched_dist
-        if pd is not None and pd.key==self.egg_name.lower():
+        if pd is not None and pd.key == self.egg_name.lower():
             pd._version = self.egg_version
             pd._parsed_version = parse_version(self.egg_version)
             self.distribution._patched_dist = None
-
 
     def write_or_delete_file(self, what, filename, data, force=False):
         """Write `data` to `filename` or delete if empty
@@ -169,7 +147,7 @@ class egg_info(Command):
         installer = self.distribution.fetch_build_egg
         for ep in iter_entry_points('egg_info.writers'):
             writer = ep.load(installer=installer)
-            writer(self, ep.name, os.path.join(self.egg_info,ep.name))
+            writer(self, ep.name, os.path.join(self.egg_info, ep.name))
 
         # Get rid of native_libs.txt if it was put there by older bdist_egg
         nl = os.path.join(self.egg_info, "native_libs.txt")
@@ -181,58 +159,46 @@ class egg_info(Command):
     def tags(self):
         version = ''
         if self.tag_build:
-            version+=self.tag_build
+            version += self.tag_build
         if self.tag_svn_revision and (
             os.path.exists('.svn') or os.path.exists('PKG-INFO')
-        ):  version += '-r%s' % self.get_svn_revision()
+        ):
+            version += '-r%s' % self.get_svn_revision()
         if self.tag_date:
-            import time; version += time.strftime("-%Y%m%d")
+            import time
+            version += time.strftime("-%Y%m%d")
         return version
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def get_svn_revision(self):
         revision = 0
         urlre = re.compile('url="([^"]+)"')
         revre = re.compile('committed-rev="(\d+)"')
 
-        for base,dirs,files in os.walk(os.curdir):
+        for base, dirs, files in os.walk(os.curdir):
             if '.svn' not in dirs:
                 dirs[:] = []
                 continue    # no sense walking uncontrolled subdirs
             dirs.remove('.svn')
-            f = open(os.path.join(base,'.svn','entries'))
+            f = open(os.path.join(base, '.svn', 'entries'))
             data = f.read()
             f.close()
 
             if data.startswith('10') or data.startswith('9') or data.startswith('8'):
-                data = map(str.splitlines,data.split('\n\x0c\n'))
+                data = map(str.splitlines, data.split('\n\x0c\n'))
                 del data[0][0]  # get rid of the '8' or '9' or '10'
                 dirurl = data[0][3]
-                localrev = max([int(d[9]) for d in data if len(d)>9 and d[9]]+[0])
+                localrev = max([int(d[9])
+                               for d in data if len(d) > 9 and d[9]] + [0])
             elif data.startswith('<?xml'):
                 dirurl = urlre.search(data).group(1)    # get repository URL
-                localrev = max([int(m.group(1)) for m in revre.finditer(data)]+[0])
+                localrev = max([int(m.group(1))
+                               for m in revre.finditer(data)] + [0])
             else:
                 log.warn("unrecognized .svn/entries format; skipping %s", base)
                 dirs[:] = []
                 continue
-            if base==os.curdir:
-                base_url = dirurl+'/'   # save the root url
+            if base == os.curdir:
+                base_url = dirurl + '/'   # save the root url
             elif not dirurl.startswith(base_url):
                 dirs[:] = []
                 continue    # not part of the same svn tree, skip it
@@ -240,36 +206,32 @@ class egg_info(Command):
 
         return str(revision or get_pkg_info_revision())
 
-
-
-
-
-
-
     def find_sources(self):
         """Generate SOURCES.txt manifest file"""
-        manifest_filename = os.path.join(self.egg_info,"SOURCES.txt")
+        manifest_filename = os.path.join(self.egg_info, "SOURCES.txt")
         mm = manifest_maker(self.distribution)
         mm.manifest = manifest_filename
         mm.run()
         self.filelist = mm.filelist
 
     def check_broken_egg_info(self):
-        bei = self.egg_name+'.egg-info'
+        bei = self.egg_name + '.egg-info'
         if self.egg_base != os.curdir:
             bei = os.path.join(self.egg_base, bei)
         if os.path.exists(bei):
             log.warn(
-                "-"*78+'\n'
+                "-" * 78 + '\n'
                 "Note: Your current .egg-info directory has a '-' in its name;"
                 '\nthis will not work correctly with "setup.py develop".\n\n'
-                'Please rename %s to %s to correct this problem.\n'+'-'*78,
+                'Please rename %s to %s to correct this problem.\n' + '-' * 78,
                 bei, self.egg_info
             )
             self.broken_egg_info = self.egg_info
             self.egg_info = bei     # make it work for now
 
+
 class FileList(FileList):
+
     """File list that accepts only existing, platform-independent paths"""
 
     def append(self, item):
@@ -280,18 +242,11 @@ class FileList(FileList):
             self.files.append(path)
 
 
-
-
-
-
-
-
-
 class manifest_maker(sdist):
 
     template = "MANIFEST.in"
 
-    def initialize_options (self):
+    def initialize_options(self):
         self.use_defaults = 1
         self.prune = 1
         self.manifest_only = 1
@@ -313,14 +268,14 @@ class manifest_maker(sdist):
         self.filelist.remove_duplicates()
         self.write_manifest()
 
-    def write_manifest (self):
+    def write_manifest(self):
         """Write the file list in 'self.filelist' (presumably as filled in
         by 'add_defaults()' and 'read_template()') to the manifest file
         named by 'self.manifest'.
         """
         files = self.filelist.files
-        if os.sep!='/':
-            files = [f.replace(os.sep,'/') for f in files]
+        if os.sep != '/':
+            files = [f.replace(os.sep, '/') for f in files]
         self.execute(write_file, (self.manifest, files),
                      "writing manifest file '%s'" % self.manifest)
 
@@ -340,16 +295,17 @@ class manifest_maker(sdist):
         ei_cmd = self.get_finalized_command('egg_info')
         self.filelist.include_pattern("*", prefix=ei_cmd.egg_info)
 
-    def prune_file_list (self):
+    def prune_file_list(self):
         build = self.get_finalized_command('build')
         base_dir = self.distribution.get_fullname()
         self.filelist.exclude_pattern(None, prefix=build.build_base)
         self.filelist.exclude_pattern(None, prefix=base_dir)
         sep = re.escape(os.sep)
-        self.filelist.exclude_pattern(sep+r'(RCS|CVS|\.svn)'+sep, is_regex=1)
+        self.filelist.exclude_pattern(
+            sep + r'(RCS|CVS|\.svn)' + sep, is_regex=1)
 
 
-def write_file (filename, contents):
+def write_file(filename, contents):
     """Create a file with the specified name and write 'contents' (a
     sequence of strings without line terminators) to it.
     """
@@ -361,23 +317,12 @@ def write_file (filename, contents):
     f.close()
 
 
-
-
-
-
-
-
-
-
-
-
-
 def write_pkg_info(cmd, basename, filename):
     log.info("writing %s", filename)
     if not cmd.dry_run:
         metadata = cmd.distribution.metadata
         metadata.version, oldver = cmd.egg_version, metadata.version
-        metadata.name, oldname   = cmd.egg_name, metadata.name
+        metadata.name, oldname = cmd.egg_name, metadata.name
         try:
             # write unescaped data to PKG-INFO, so older pkg_resources
             # can still parse it
@@ -385,8 +330,10 @@ def write_pkg_info(cmd, basename, filename):
         finally:
             metadata.name, metadata.version = oldname, oldver
 
-        safe = getattr(cmd.distribution,'zip_safe',None)
-        import bdist_egg; bdist_egg.write_safety_flag(cmd.egg_info, safe)
+        safe = getattr(cmd.distribution, 'zip_safe', None)
+        import bdist_egg
+        bdist_egg.write_safety_flag(cmd.egg_info, safe)
+
 
 def warn_depends_obsolete(cmd, basename, filename):
     if os.path.exists(filename):
@@ -399,59 +346,61 @@ def warn_depends_obsolete(cmd, basename, filename):
 def write_requirements(cmd, basename, filename):
     dist = cmd.distribution
     data = ['\n'.join(yield_lines(dist.install_requires or ()))]
-    for extra,reqs in (dist.extras_require or {}).items():
+    for extra, reqs in (dist.extras_require or {}).items():
         data.append('\n\n[%s]\n%s' % (extra, '\n'.join(yield_lines(reqs))))
     cmd.write_or_delete_file("requirements", filename, ''.join(data))
 
+
 def write_toplevel_names(cmd, basename, filename):
     pkgs = dict.fromkeys(
-        [k.split('.',1)[0]
+        [k.split('.', 1)[0]
             for k in cmd.distribution.iter_distribution_names()
-        ]
+         ]
     )
-    cmd.write_file("top-level names", filename, '\n'.join(pkgs)+'\n')
-
+    cmd.write_file("top-level names", filename, '\n'.join(pkgs) + '\n')
 
 
 def overwrite_arg(cmd, basename, filename):
     write_arg(cmd, basename, filename, True)
 
+
 def write_arg(cmd, basename, filename, force=False):
     argname = os.path.splitext(basename)[0]
     value = getattr(cmd.distribution, argname, None)
     if value is not None:
-        value = '\n'.join(value)+'\n'
+        value = '\n'.join(value) + '\n'
     cmd.write_or_delete_file(argname, filename, value, force)
+
 
 def write_entries(cmd, basename, filename):
     ep = cmd.distribution.entry_points
 
-    if isinstance(ep,basestring) or ep is None:
+    if isinstance(ep, basestring) or ep is None:
         data = ep
     elif ep is not None:
         data = []
         for section, contents in ep.items():
-            if not isinstance(contents,basestring):
+            if not isinstance(contents, basestring):
                 contents = EntryPoint.parse_group(section, contents)
-                contents = '\n'.join(map(str,contents.values()))
-            data.append('[%s]\n%s\n\n' % (section,contents))
+                contents = '\n'.join(map(str, contents.values()))
+            data.append('[%s]\n%s\n\n' % (section, contents))
         data = ''.join(data)
 
     cmd.write_or_delete_file('entry points', filename, data, True)
+
 
 def get_pkg_info_revision():
     # See if we can get a -r### off of PKG-INFO, in case this is an sdist of
     # a subversion revision
     #
     if os.path.exists('PKG-INFO'):
-        f = open('PKG-INFO','rU')
+        f = open('PKG-INFO', 'rU')
         for line in f:
             match = re.match(r"Version:.*-r(\d+)\s*$", line)
             if match:
                 return int(match.group(1))
         f.close()
     return 0
-
 
 
 #

@@ -2,7 +2,10 @@
 pytz setup script
 '''
 
-import pytz, sys, os, os.path
+import pytz
+import sys
+import os
+import os.path
 
 try:
     from setuptools import setup
@@ -22,24 +25,24 @@ package_data = {'pytz': resources}
 
 assert len(resources) > 10, 'zoneinfo files not found!'
 
-setup (
+setup(
     name='pytz',
     version=pytz.VERSION,
     zip_safe=True,
     description='World timezone definitions, modern and historical',
-    long_description=open('README.txt','r').read(),
+    long_description=open('README.txt', 'r').read(),
     author=me,
     author_email=memail,
     maintainer=me,
     maintainer_email=memail,
     url='http://pythonhosted.org/pytz',
     license='MIT',
-    keywords=['timezone','tzinfo', 'datetime', 'olson', 'time'],
+    keywords=['timezone', 'tzinfo', 'datetime', 'olson', 'time'],
     packages=packages,
     package_data=package_data,
     download_url='http://pypi.python.org/pypi/pytz',
     platforms=['Independant'],
-    classifiers = [
+    classifiers=[
         'Development Status :: 6 - Mature',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
@@ -48,5 +51,5 @@ setup (
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        ],
-    )
+    ],
+)

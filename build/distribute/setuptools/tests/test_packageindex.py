@@ -2,10 +2,15 @@
 """
 # More would be better!
 import sys
-import os, shutil, tempfile, unittest, urllib2
+import os
+import shutil
+import tempfile
+import unittest
+import urllib2
 import pkg_resources
 import setuptools.package_index
 from server import IndexServer
+
 
 class TestPackageIndex(unittest.TestCase):
 
@@ -17,7 +22,7 @@ class TestPackageIndex(unittest.TestCase):
         except Exception, v:
             self.assert_(url in str(v))
         else:
-            self.assert_(isinstance(v,urllib2.HTTPError))
+            self.assert_(isinstance(v, urllib2.HTTPError))
 
         # issue 16
         # easy_install inquant.contentmirror.plone breaks because of a typo
@@ -58,7 +63,6 @@ class TestPackageIndex(unittest.TestCase):
         except Exception, v:
             self.assert_('nonnumeric port' in str(v))
 
-
         # issue #160
         if sys.version_info[0] == 2 and sys.version_info[1] == 7:
             # this should not fail
@@ -66,7 +70,6 @@ class TestPackageIndex(unittest.TestCase):
             page = ('<a href="http://www.famfamfam.com]('
                     'http://www.famfamfam.com/">')
             index.process_index(url, page)
-
 
     def test_url_ok(self):
         index = setuptools.package_index.PackageIndex(
@@ -104,7 +107,7 @@ class TestPackageIndex(unittest.TestCase):
         # the distribution has been found
         self.assert_('foobar' in pi)
         # we have only one link, because links are compared without md5
-        self.assert_(len(pi['foobar'])==1)
+        self.assert_(len(pi['foobar']) == 1)
         # the link should be from the index
         self.assert_('correct_md5' in pi['foobar'][0].location)
 
@@ -117,5 +120,3 @@ class TestPackageIndex(unittest.TestCase):
             'reportlab-2.5.win-amd64-py2.7.exe'), ('reportlab-2.5', '2.7', 'win-amd64'))
         self.assertEqual(setuptools.package_index.parse_bdist_wininst(
             'reportlab-2.5.win-amd64.exe'), ('reportlab-2.5', None, 'win-amd64'))
-
-

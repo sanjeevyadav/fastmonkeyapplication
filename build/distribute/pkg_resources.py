@@ -13,7 +13,13 @@ The package resource API is designed to work with normal filesystem packages,
 method.
 """
 
-import sys, os, zipimport, time, re, imp, types
+import sys
+import os
+import zipimport
+import time
+import re
+import imp
+import types
 from urlparse import urlparse, urlunparse
 
 try:
@@ -42,6 +48,7 @@ from os.path import isdir, split
 # attribute is present to decide wether to reinstall the package
 _distribute = True
 
+
 def _bypass_ensure_directory(name, mode=0777):
     # Sandbox-bypassing version of ensure_directory()
     if not WRITE_SUPPORT:
@@ -54,40 +61,46 @@ def _bypass_ensure_directory(name, mode=0777):
 
 _state_vars = {}
 
+
 def _declare_state(vartype, **kw):
     g = globals()
     for name, val in kw.iteritems():
         g[name] = val
         _state_vars[name] = vartype
 
+
 def __getstate__():
     state = {}
     g = globals()
     for k, v in _state_vars.iteritems():
-        state[k] = g['_sget_'+v](g[k])
+        state[k] = g['_sget_' + v](g[k])
     return state
+
 
 def __setstate__(state):
     g = globals()
     for k, v in state.iteritems():
-        g['_sset_'+_state_vars[k]](k, g[k], v)
+        g['_sset_' + _state_vars[k]](k, g[k], v)
     return state
+
 
 def _sget_dict(val):
     return val.copy()
+
 
 def _sset_dict(key, ob, state):
     ob.clear()
     ob.update(state)
 
+
 def _sget_object(val):
     return val.__getstate__()
+
 
 def _sset_object(key, ob, state):
     ob.__setstate__(state)
 
 _sget_none = _sset_none = lambda *args: None
-
 
 
 def get_supported_platform():
@@ -103,32 +116,14 @@ def get_supported_platform():
     If this condition occurs for any other platform with a version in its
     platform strings, this function should be extended accordingly.
     """
-    plat = get_build_platform(); m = macosVersionString.match(plat)
+    plat = get_build_platform()
+    m = macosVersionString.match(plat)
     if m is not None and sys.platform == "darwin":
         try:
             plat = 'macosx-%s-%s' % ('.'.join(_macosx_vers()[:2]), m.group(3))
         except ValueError:
             pass    # not Mac OS X
     return plat
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 __all__ = [
@@ -148,7 +143,7 @@ __all__ = [
     'Distribution', 'Requirement', 'EntryPoint',
 
     # Exceptions
-    'ResolutionError','VersionConflict','DistributionNotFound','UnknownExtra',
+    'ResolutionError', 'VersionConflict', 'DistributionNotFound', 'UnknownExtra',
     'ExtractionError',
 
     # Parsing functions and string utilities
@@ -172,27 +167,38 @@ __all__ = [
     # Deprecated/backward compatibility only
     'run_main', 'AvailableDistributions',
 ]
+
+
 class ResolutionError(Exception):
+
     """Abstract base for dependency resolution errors"""
+
     def __repr__(self):
-        return self.__class__.__name__+repr(self.args)
+        return self.__class__.__name__ + repr(self.args)
+
 
 class VersionConflict(ResolutionError):
+
     """An already-installed version conflicts with the requested version"""
 
+
 class DistributionNotFound(ResolutionError):
+
     """A requested distribution was not found"""
 
+
 class UnknownExtra(ResolutionError):
+
     """Distribution doesn't have an "extra feature" of the given name"""
 _provider_factories = {}
 
 PY_MAJOR = sys.version[:3]
-EGG_DIST    = 3
+EGG_DIST = 3
 BINARY_DIST = 2
 SOURCE_DIST = 1
 CHECKOUT_DIST = 0
 DEVELOP_DIST = -1
+
 
 def register_loader_type(loader_type, provider_factory):
     """Register `provider_factory` to make providers for `loader_type`
@@ -203,9 +209,10 @@ def register_loader_type(loader_type, provider_factory):
     """
     _provider_factories[loader_type] = provider_factory
 
+
 def get_provider(moduleOrReq):
     """Return an IResourceProvider for the named module or requirement"""
-    if isinstance(moduleOrReq,Requirement):
+    if isinstance(moduleOrReq, Requirement):
         return working_set.find(moduleOrReq) or require(str(moduleOrReq))[0]
     try:
         module = sys.modules[moduleOrReq]
@@ -214,6 +221,7 @@ def get_provider(moduleOrReq):
         module = sys.modules[moduleOrReq]
     loader = getattr(module, '__loader__', None)
     return _find_adapter(_provider_factories, loader)(module)
+
 
 def _macosx_vers(_cache=[]):
     if not _cache:
@@ -232,8 +240,10 @@ def _macosx_vers(_cache=[]):
         _cache.append(version.split('.'))
     return _cache[0]
 
+
 def _macosx_arch(machine):
-    return {'PowerPC':'ppc', 'Power_Macintosh':'ppc'}.get(machine,machine)
+    return {'PowerPC': 'ppc', 'Power_Macintosh': 'ppc'}.get(machine, machine)
+
 
 def get_build_platform():
     """Return this platform's string for platform-specific distributions
@@ -252,7 +262,7 @@ def get_build_platform():
             version = _macosx_vers()
             machine = os.uname()[4].replace(" ", "_")
             return "macosx-%d.%d-%s" % (int(version[0]), int(version[1]),
-                _macosx_arch(machine))
+                                        _macosx_arch(machine))
         except ValueError:
             # if someone is running a non-Mac darwin system, this will fall
             # through to the default implementation
@@ -263,14 +273,15 @@ macosVersionString = re.compile(r"macosx-(\d+)\.(\d+)-(.*)")
 darwinVersionString = re.compile(r"darwin-(\d+)\.(\d+)\.(\d+)-(.*)")
 get_platform = get_build_platform   # XXX backward compat
 
-def compatible_platforms(provided,required):
+
+def compatible_platforms(provided, required):
     """Can code for the `provided` platform run on the `required` platform?
 
     Returns true if either platform is ``None``, or the platforms are equal.
 
     XXX Needs compatibility checks for Linux and other unixy OSes.
     """
-    if provided is None or required is None or provided==required:
+    if provided is None or required is None or provided == required:
         return True     # easy case
 
     # Mac OS X special cases
@@ -288,10 +299,10 @@ def compatible_platforms(provided,required):
                 dversion = int(provDarwin.group(1))
                 macosversion = "%s.%s" % (reqMac.group(1), reqMac.group(2))
                 if dversion == 7 and macosversion >= "10.3" or \
-                    dversion == 8 and macosversion >= "10.4":
+                        dversion == 8 and macosversion >= "10.4":
 
                     #import warnings
-                    #warnings.warn("Mac eggs should be rebuilt to "
+                    # warnings.warn("Mac eggs should be rebuilt to "
                     #    "use the macosx designation instead of darwin.",
                     #    category=DeprecationWarning)
                     return True
@@ -299,10 +310,8 @@ def compatible_platforms(provided,required):
 
         # are they the same major version and machine type?
         if provMac.group(1) != reqMac.group(1) or \
-            provMac.group(3) != reqMac.group(3):
+                provMac.group(3) != reqMac.group(3):
             return False
-
-
 
         # is the required OS major update >= the provided one?
         if int(provMac.group(2)) > int(reqMac.group(2)):
@@ -324,21 +333,27 @@ def run_script(dist_spec, script_name):
 
 run_main = run_script   # backward compatibility
 
+
 def get_distribution(dist):
     """Return a current distribution object for a Requirement or string"""
-    if isinstance(dist,basestring): dist = Requirement.parse(dist)
-    if isinstance(dist,Requirement): dist = get_provider(dist)
-    if not isinstance(dist,Distribution):
+    if isinstance(dist, basestring):
+        dist = Requirement.parse(dist)
+    if isinstance(dist, Requirement):
+        dist = get_provider(dist)
+    if not isinstance(dist, Distribution):
         raise TypeError("Expected string, Requirement, or Distribution", dist)
     return dist
+
 
 def load_entry_point(dist, group, name):
     """Return `name` entry point of `group` for `dist` or raise ImportError"""
     return get_distribution(dist).load_entry_point(group, name)
 
+
 def get_entry_map(dist, group=None):
     """Return the entry point map for `group`, or the full entry map"""
     return get_distribution(dist).get_entry_map(group)
+
 
 def get_entry_info(dist, group, name):
     """Return the EntryPoint object for `group`+`name`, or ``None``"""
@@ -369,15 +384,8 @@ class IMetadataProvider:
         """Execute the named script in the supplied namespace dictionary"""
 
 
-
-
-
-
-
-
-
-
 class IResourceProvider(IMetadataProvider):
+
     """An object that provides access to package resources"""
 
     def get_resource_filename(manager, resource_name):
@@ -405,20 +413,8 @@ class IResourceProvider(IMetadataProvider):
         """List of resource names in the directory (like ``os.listdir()``)"""
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 class WorkingSet(object):
+
     """A collection of active distributions on sys.path (or a similar list)"""
 
     def __init__(self, entries=None):
@@ -433,7 +429,6 @@ class WorkingSet(object):
 
         for entry in entries:
             self.add_entry(entry)
-
 
     def add_entry(self, entry):
         """Add a path item to ``.entries``, finding any distributions on it
@@ -450,14 +445,9 @@ class WorkingSet(object):
         for dist in find_distributions(entry, True):
             self.add(dist, entry, False)
 
-
-    def __contains__(self,dist):
+    def __contains__(self, dist):
         """True if `dist` is the active distribution for its project"""
         return self.by_key.get(dist.key) == dist
-
-
-
-
 
     def find(self, req):
         """Find a distribution matching requirement `req`
@@ -471,7 +461,7 @@ class WorkingSet(object):
         """
         dist = self.by_key.get(req.key)
         if dist is not None and dist not in req:
-            raise VersionConflict(dist,req)     # XXX add more info
+            raise VersionConflict(dist, req)     # XXX add more info
         else:
             return dist
 
@@ -498,8 +488,6 @@ class WorkingSet(object):
         ns['__name__'] = name
         self.require(requires)[0].run_script(script_name, ns)
 
-
-
     def __iter__(self):
         """Yield distributions for non-duplicate projects in the working set
 
@@ -514,7 +502,7 @@ class WorkingSet(object):
 
             for key in self.entry_keys[item]:
                 if key not in seen:
-                    seen[key]=1
+                    seen[key] = 1
                     yield self.by_key[key]
 
     def add(self, dist, entry=None, insert=True):
@@ -533,8 +521,8 @@ class WorkingSet(object):
 
         if entry is None:
             entry = dist.location
-        keys = self.entry_keys.setdefault(entry,[])
-        keys2 = self.entry_keys.setdefault(dist.location,[])
+        keys = self.entry_keys.setdefault(entry, [])
+        keys2 = self.entry_keys.setdefault(dist.location, [])
         if dist.key in self.by_key:
             return      # ignore hidden distros
 
@@ -579,7 +567,7 @@ class WorkingSet(object):
                         env = Environment(self.entries)
                     dist = best[req.key] = env.best_match(req, self, installer)
                     if dist is None:
-                        #msg = ("The '%s' distribution was not found on this "
+                        # msg = ("The '%s' distribution was not found on this "
                         #       "system, and is required by this application.")
                         #raise DistributionNotFound(msg % req)
 
@@ -589,15 +577,15 @@ class WorkingSet(object):
                 to_activate.append(dist)
             if dist not in req:
                 # Oops, the "best" so far conflicts with a dependency
-                raise VersionConflict(dist,req) # XXX put more info here
+                raise VersionConflict(dist, req)  # XXX put more info here
             requirements.extend(dist.requires(req.extras)[::-1])
             processed[req] = True
 
         return to_activate    # return list of distros to activate
 
     def find_plugins(self,
-        plugin_env, full_env=None, installer=None, fallback=True
-    ):
+                     plugin_env, full_env=None, installer=None, fallback=True
+                     ):
         """Find all activatable distributions in `plugin_env`
 
         Example usage::
@@ -654,7 +642,7 @@ class WorkingSet(object):
                 try:
                     resolvees = shadow_set.resolve(req, env, installer)
 
-                except ResolutionError,v:
+                except ResolutionError, v:
                     error_info[dist] = v    # save error info
                     if fallback:
                         continue    # try the next older version of project
@@ -673,10 +661,6 @@ class WorkingSet(object):
 
         return distributions, error_info
 
-
-
-
-
     def require(self, *requirements):
         """Ensure that distributions matching `requirements` are activated
 
@@ -694,7 +678,6 @@ class WorkingSet(object):
 
         return needed
 
-
     def subscribe(self, callback):
         """Invoke `callback` for all distributions (including existing ones)"""
         if callback in self.callbacks:
@@ -702,7 +685,6 @@ class WorkingSet(object):
         self.callbacks.append(callback)
         for dist in self:
             callback(dist)
-
 
     def _added_new(self, dist):
         for callback in self.callbacks:
@@ -719,9 +701,8 @@ class WorkingSet(object):
         self.callbacks = callbacks[:]
 
 
-
-
 class Environment(object):
+
     """Searchable snapshot of distributions on a search path"""
 
     def __init__(self, search_path=None, platform=get_supported_platform(), python=PY_MAJOR):
@@ -755,8 +736,8 @@ class Environment(object):
         is returned.
         """
         return (self.python is None or dist.py_version is None
-            or dist.py_version==self.python) \
-           and compatible_platforms(dist.platform,self.platform)
+                or dist.py_version == self.python) \
+            and compatible_platforms(dist.platform, self.platform)
 
     def remove(self, dist):
         """Remove `dist` from the environment"""
@@ -777,7 +758,7 @@ class Environment(object):
             for dist in find_distributions(item):
                 self.add(dist)
 
-    def __getitem__(self,project_name):
+    def __getitem__(self, project_name):
         """Return a newest-to-oldest list of distributions for `project_name`
         """
         try:
@@ -793,15 +774,14 @@ class Environment(object):
 
         return self._cache[project_name]
 
-    def add(self,dist):
+    def add(self, dist):
         """Add `dist` if we ``can_add()`` it and it isn't already added"""
         if self.can_add(dist) and dist.has_version():
-            dists = self._distmap.setdefault(dist.key,[])
+            dists = self._distmap.setdefault(dist.key, [])
             if dist not in dists:
                 dists.append(dist)
                 if dist.key in self._cache:
                     _sort_dists(self._cache[dist.key])
-
 
     def best_match(self, req, working_set, installer=None):
         """Find distribution best matching `req` and usable on `working_set`
@@ -822,7 +802,7 @@ class Environment(object):
         for dist in self[req.key]:
             if dist in req:
                 return dist
-        return self.obtain(req, installer) # try and download/install
+        return self.obtain(req, installer)  # try and download/install
 
     def obtain(self, requirement, installer=None):
         """Obtain a distribution matching `requirement` (e.g. via download)
@@ -839,16 +819,14 @@ class Environment(object):
     def __iter__(self):
         """Yield the unique project names of the available distributions"""
         for key in self._distmap.keys():
-            if self[key]: yield key
-
-
-
+            if self[key]:
+                yield key
 
     def __iadd__(self, other):
         """In-place addition of a distribution or environment"""
-        if isinstance(other,Distribution):
+        if isinstance(other, Distribution):
             self.add(other)
-        elif isinstance(other,Environment):
+        elif isinstance(other, Environment):
             for project in other:
                 for dist in other[project]:
                     self.add(dist)
@@ -868,6 +846,7 @@ AvailableDistributions = Environment    # XXX backward compatibility
 
 
 class ExtractionError(RuntimeError):
+
     """An error occurred extracting a resource
 
     The following attributes are available from instances of this exception:
@@ -883,9 +862,8 @@ class ExtractionError(RuntimeError):
     """
 
 
-
-
 class ResourceManager:
+
     """Manage resource extraction and packages"""
     extraction_path = None
 
@@ -948,24 +926,10 @@ change the cache directory by setting the PYTHON_EGG_CACHE environment
 variable to point to an accessible directory.
 """         % (old_exc, cache_path)
         )
-        err.manager        = self
-        err.cache_path     = cache_path
+        err.manager = self
+        err.cache_path = cache_path
         err.original_error = old_exc
         raise err
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def get_cache_path(self, archive_name, names=()):
         """Return absolute location in cache for `archive_name` and `names`
@@ -981,7 +945,7 @@ variable to point to an accessible directory.
         extract, as it tracks the generated names for possible cleanup later.
         """
         extract_path = self.extraction_path or get_default_cache()
-        target_path = os.path.join(extract_path, archive_name+'-tmp', *names)
+        target_path = os.path.join(extract_path, archive_name + '-tmp', *names)
         try:
             _bypass_ensure_directory(target_path)
         except:
@@ -989,24 +953,6 @@ variable to point to an accessible directory.
 
         self.cached_files[target_path] = 1
         return target_path
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def postprocess(self, tempname, filename):
         """Perform any platform-specific postprocessing of `tempname`
@@ -1027,27 +973,6 @@ variable to point to an accessible directory.
             # Make the resource executable
             mode = ((os.stat(tempname).st_mode) | 0555) & 07777
             os.chmod(tempname, mode)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def set_extraction_path(self, path):
         """Set the base path where resources will be extracted to, if needed.
@@ -1089,7 +1014,6 @@ variable to point to an accessible directory.
         # XXX
 
 
-
 def get_default_cache():
     """Determine the default cache location
 
@@ -1102,14 +1026,14 @@ def get_default_cache():
     except KeyError:
         pass
 
-    if os.name!='nt':
+    if os.name != 'nt':
         return os.path.expanduser('~/.python-eggs')
 
     app_data = 'Application Data'   # XXX this may be locale-specific!
     app_homes = [
         (('APPDATA',), None),       # best option, should be locale-safe
         (('USERPROFILE',), app_data),
-        (('HOMEDRIVE','HOMEPATH'), app_data),
+        (('HOMEDRIVE', 'HOMEPATH'), app_data),
         (('HOMEPATH',), app_data),
         (('HOME',), None),
         (('WINDIR',), app_data),    # 95/98/ME
@@ -1124,12 +1048,13 @@ def get_default_cache():
                 break
         else:
             if subdir:
-                dirname = os.path.join(dirname,subdir)
+                dirname = os.path.join(dirname, subdir)
             return os.path.join(dirname, 'Python-Eggs')
     else:
         raise RuntimeError(
             "Please set the PYTHON_EGG_CACHE enviroment variable"
         )
+
 
 def safe_name(name):
     """Convert an arbitrary string to a standard distribution name
@@ -1145,7 +1070,7 @@ def safe_version(version):
     Spaces become dots, and all other non-alphanumeric characters become
     dashes, with runs of multiple dashes condensed to a single dash.
     """
-    version = version.replace(' ','.')
+    version = version.replace(' ', '.')
     return re.sub('[^A-Za-z0-9.]+', '-', version)
 
 
@@ -1163,16 +1088,11 @@ def to_filename(name):
 
     Any '-' characters are currently replaced with '_'.
     """
-    return name.replace('-','_')
-
-
-
-
-
-
+    return name.replace('-', '_')
 
 
 class NullProvider:
+
     """Try to implement resources and metadata for arbitrary PEP 302 loaders"""
 
     egg_name = None
@@ -1196,44 +1116,43 @@ class NullProvider:
         return self._has(self._fn(self.module_path, resource_name))
 
     def has_metadata(self, name):
-        return self.egg_info and self._has(self._fn(self.egg_info,name))
+        return self.egg_info and self._has(self._fn(self.egg_info, name))
 
     if sys.version_info <= (3,):
         def get_metadata(self, name):
             if not self.egg_info:
                 return ""
-            return self._get(self._fn(self.egg_info,name))
+            return self._get(self._fn(self.egg_info, name))
     else:
         def get_metadata(self, name):
             if not self.egg_info:
                 return ""
-            return self._get(self._fn(self.egg_info,name)).decode("utf-8")
+            return self._get(self._fn(self.egg_info, name)).decode("utf-8")
 
     def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
-    def resource_isdir(self,resource_name):
+    def resource_isdir(self, resource_name):
         return self._isdir(self._fn(self.module_path, resource_name))
 
-    def metadata_isdir(self,name):
-        return self.egg_info and self._isdir(self._fn(self.egg_info,name))
+    def metadata_isdir(self, name):
+        return self.egg_info and self._isdir(self._fn(self.egg_info, name))
 
+    def resource_listdir(self, resource_name):
+        return self._listdir(self._fn(self.module_path, resource_name))
 
-    def resource_listdir(self,resource_name):
-        return self._listdir(self._fn(self.module_path,resource_name))
-
-    def metadata_listdir(self,name):
+    def metadata_listdir(self, name):
         if self.egg_info:
-            return self._listdir(self._fn(self.egg_info,name))
+            return self._listdir(self._fn(self.egg_info, name))
         return []
 
-    def run_script(self,script_name,namespace):
-        script = 'scripts/'+script_name
+    def run_script(self, script_name, namespace):
+        script = 'scripts/' + script_name
         if not self.has_metadata(script):
             raise ResolutionError("No script named %r" % script_name)
-        script_text = self.get_metadata(script).replace('\r\n','\n')
-        script_text = script_text.replace('\r','\n')
-        script_filename = self._fn(self.egg_info,script)
+        script_text = self.get_metadata(script).replace('\r\n', '\n')
+        script_text = script_text.replace('\r', '\n')
+        script_filename = self._fn(self.egg_info, script)
         namespace['__file__'] = script_filename
         if os.path.exists(script_filename):
             execfile(script_filename, namespace, namespace)
@@ -1242,7 +1161,7 @@ class NullProvider:
             cache[script_filename] = (
                 len(script_text), 0, script_text.split('\n'), script_filename
             )
-            script_code = compile(script_text,script_filename,'exec')
+            script_code = compile(script_text, script_filename, 'exec')
             exec script_code in namespace, namespace
 
     def _has(self, path):
@@ -1276,10 +1195,11 @@ register_loader_type(object, NullProvider)
 
 
 class EggProvider(NullProvider):
+
     """Provider based on a virtual filesystem"""
 
-    def __init__(self,module):
-        NullProvider.__init__(self,module)
+    def __init__(self, module):
+        NullProvider.__init__(self, module)
         self._setup_prefix()
 
     def _setup_prefix(self):
@@ -1287,7 +1207,7 @@ class EggProvider(NullProvider):
         # of multiple eggs; that's why we use module_path instead of .archive
         path = self.module_path
         old = None
-        while path!=old:
+        while path != old:
             if path.lower().endswith('.egg'):
                 self.egg_name = os.path.basename(path)
                 self.egg_info = os.path.join(path, 'EGG-INFO')
@@ -1297,20 +1217,17 @@ class EggProvider(NullProvider):
             path, base = os.path.split(path)
 
 
-
-
-
-
 class DefaultProvider(EggProvider):
+
     """Provides access to package resources in the filesystem"""
 
     def _has(self, path):
         return os.path.exists(path)
 
-    def _isdir(self,path):
+    def _isdir(self, path):
         return os.path.isdir(path)
 
-    def _listdir(self,path):
+    def _listdir(self, path):
         return os.listdir(path)
 
     def get_resource_stream(self, manager, resource_name):
@@ -1327,12 +1244,13 @@ register_loader_type(type(None), DefaultProvider)
 
 
 class EmptyProvider(NullProvider):
+
     """Provider that returns nothing for all requests"""
 
-    _isdir = _has = lambda self,path: False
-    _get          = lambda self,path: ''
-    _listdir      = lambda self,path: []
-    module_path   = None
+    _isdir = _has = lambda self, path: False
+    _get = lambda self, path: ''
+    _listdir = lambda self, path: []
+    module_path = None
 
     def __init__(self):
         pass
@@ -1340,17 +1258,16 @@ class EmptyProvider(NullProvider):
 empty_provider = EmptyProvider()
 
 
-
-
 class ZipProvider(EggProvider):
+
     """Resource support for zips and eggs"""
 
     eagers = None
 
     def __init__(self, module):
-        EggProvider.__init__(self,module)
+        EggProvider.__init__(self, module)
         self.zipinfo = zipimport._zip_directory_cache[self.loader.archive]
-        self.zip_pre = self.loader.archive+os.sep
+        self.zip_pre = self.loader.archive + os.sep
 
     def _zipinfo_name(self, fspath):
         # Convert a virtual filename (full path to file) into a zipfile subpath
@@ -1358,16 +1275,16 @@ class ZipProvider(EggProvider):
         if fspath.startswith(self.zip_pre):
             return fspath[len(self.zip_pre):]
         raise AssertionError(
-            "%s is not a subpath of %s" % (fspath,self.zip_pre)
+            "%s is not a subpath of %s" % (fspath, self.zip_pre)
         )
 
-    def _parts(self,zip_path):
+    def _parts(self, zip_path):
         # Convert a zipfile subpath into an egg-relative path part list
-        fspath = self.zip_pre+zip_path  # pseudo-fs path
-        if fspath.startswith(self.egg_root+os.sep):
-            return fspath[len(self.egg_root)+1:].split(os.sep)
+        fspath = self.zip_pre + zip_path  # pseudo-fs path
+        if fspath.startswith(self.egg_root + os.sep):
+            return fspath[len(self.egg_root) + 1:].split(os.sep)
         raise AssertionError(
-            "%s is not a subpath of %s" % (fspath,self.egg_root)
+            "%s is not a subpath of %s" % (fspath, self.egg_root)
         )
 
     def get_resource_filename(self, manager, resource_name):
@@ -1393,10 +1310,12 @@ class ZipProvider(EggProvider):
             return os.path.dirname(last)  # return the extracted directory name
 
         zip_stat = self.zipinfo[zip_path]
-        t,d,size = zip_stat[5], zip_stat[6], zip_stat[3]
+        t, d, size = zip_stat[5], zip_stat[6], zip_stat[3]
         date_time = (
-            (d>>9)+1980, (d>>5)&0xF, d&0x1F,                      # ymd
-            (t&0xFFFF)>>11, (t>>5)&0x3F, (t&0x1F) * 2, 0, 0, -1   # hms, etc.
+            # ymd
+            (d >> 9) + 1980, (d >> 5) & 0xF, d & 0x1F,
+            (t & 0xFFFF) >> 11, (t >> 5) & 0x3F, (
+                t & 0x1F) * 2, 0, 0, -1   # hms, etc.
         )
         timestamp = time.mktime(date_time)
 
@@ -1411,14 +1330,15 @@ class ZipProvider(EggProvider):
 
             if os.path.isfile(real_path):
                 stat = os.stat(real_path)
-                if stat.st_size==size and stat.st_mtime==timestamp:
+                if stat.st_size == size and stat.st_mtime == timestamp:
                     # size and stamp match, don't bother extracting
                     return real_path
 
-            outf, tmpnam = _mkstemp(".$extract", dir=os.path.dirname(real_path))
+            outf, tmpnam = _mkstemp(
+                ".$extract", dir=os.path.dirname(real_path))
             os.write(outf, self.loader.get_data(zip_path))
             os.close(outf)
-            utime(tmpnam, (timestamp,timestamp))
+            utime(tmpnam, (timestamp, timestamp))
             manager.postprocess(tmpnam, real_path)
 
             try:
@@ -1428,11 +1348,11 @@ class ZipProvider(EggProvider):
                 if os.path.isfile(real_path):
                     stat = os.stat(real_path)
 
-                    if stat.st_size==size and stat.st_mtime==timestamp:
+                    if stat.st_size == size and stat.st_mtime == timestamp:
                         # size and stamp match, somebody did it just ahead of
                         # us, so we're done
                         return real_path
-                    elif os.name=='nt':     # Windows, del old file and retry
+                    elif os.name == 'nt':     # Windows, del old file and retry
                         unlink(real_path)
                         rename(tmpnam, real_path)
                         return real_path
@@ -1473,44 +1393,23 @@ class ZipProvider(EggProvider):
         zip_path = self._zipinfo_name(fspath)
         return zip_path in self.zipinfo or zip_path in self._index()
 
-    def _isdir(self,fspath):
+    def _isdir(self, fspath):
         return self._zipinfo_name(fspath) in self._index()
 
-    def _listdir(self,fspath):
+    def _listdir(self, fspath):
         return list(self._index().get(self._zipinfo_name(fspath), ()))
 
-    def _eager_to_zip(self,resource_name):
-        return self._zipinfo_name(self._fn(self.egg_root,resource_name))
+    def _eager_to_zip(self, resource_name):
+        return self._zipinfo_name(self._fn(self.egg_root, resource_name))
 
-    def _resource_to_zip(self,resource_name):
-        return self._zipinfo_name(self._fn(self.module_path,resource_name))
+    def _resource_to_zip(self, resource_name):
+        return self._zipinfo_name(self._fn(self.module_path, resource_name))
 
 register_loader_type(zipimport.zipimporter, ZipProvider)
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class FileMetadata(EmptyProvider):
+
     """Metadata handler for standalone PKG-INFO files
 
     Usage::
@@ -1522,39 +1421,26 @@ class FileMetadata(EmptyProvider):
     the provided location.
     """
 
-    def __init__(self,path):
+    def __init__(self, path):
         self.path = path
 
-    def has_metadata(self,name):
-        return name=='PKG-INFO'
+    def has_metadata(self, name):
+        return name == 'PKG-INFO'
 
-    def get_metadata(self,name):
-        if name=='PKG-INFO':
-            f = open(self.path,'rU')
+    def get_metadata(self, name):
+        if name == 'PKG-INFO':
+            f = open(self.path, 'rU')
             metadata = f.read()
             f.close()
             return metadata
         raise KeyError("No metadata except PKG-INFO is available")
 
-    def get_metadata_lines(self,name):
+    def get_metadata_lines(self, name):
         return yield_lines(self.get_metadata(name))
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 class PathMetadata(DefaultProvider):
+
     """Metadata provider for egg directories
 
     Usage::
@@ -1580,13 +1466,14 @@ class PathMetadata(DefaultProvider):
 
 
 class EggMetadata(ZipProvider):
+
     """Metadata provider for .egg files"""
 
     def __init__(self, importer):
         """Create a metadata provider from a zipimporter"""
 
         self.zipinfo = zipimport._zip_directory_cache[importer.archive]
-        self.zip_pre = importer.archive+os.sep
+        self.zip_pre = importer.archive + os.sep
         self.loader = importer
         if importer.prefix:
             self.module_path = os.path.join(importer.archive, importer.prefix)
@@ -1596,6 +1483,7 @@ class EggMetadata(ZipProvider):
 
 
 class ImpWrapper:
+
     """PEP 302 Importer that wraps Python's "normal" import algorithm"""
 
     def __init__(self, path=None):
@@ -1617,6 +1505,7 @@ class ImpWrapper:
 
 
 class ImpLoader:
+
     """PEP 302 Loader that wraps Python's "normal" import algorithm"""
 
     def __init__(self, file, filename, etc):
@@ -1628,12 +1517,11 @@ class ImpLoader:
         try:
             mod = imp.load_module(fullname, self.file, self.filename, self.etc)
         finally:
-            if self.file: self.file.close()
+            if self.file:
+                self.file.close()
         # Note: we don't set __loader__ because we want the module to look
         # normal; i.e. this is just a wrapper for standard import machinery
         return mod
-
-
 
 
 def get_importer(path_item):
@@ -1656,7 +1544,7 @@ def get_importer(path_item):
         else:
             importer = None
 
-    sys.path_importer_cache.setdefault(path_item,importer)
+    sys.path_importer_cache.setdefault(path_item, importer)
     if importer is None:
         try:
             importer = ImpWrapper(path_item)
@@ -1673,11 +1561,8 @@ else:
     del ImpLoader, ImpImporter
 
 
+_declare_state('dict', _distribution_finders={})
 
-
-
-
-_declare_state('dict', _distribution_finders = {})
 
 def register_finder(importer_type, distribution_finder):
     """Register `distribution_finder` to find distributions in sys.path items
@@ -1695,6 +1580,7 @@ def find_distributions(path_item, only=False):
     finder = _find_adapter(_distribution_finders, importer)
     return finder(importer, path_item, only)
 
+
 def find_in_zip(importer, path_item, only=False):
     metadata = EggMetadata(importer)
     if metadata.has_metadata('PKG-INFO'):
@@ -1709,6 +1595,7 @@ def find_in_zip(importer, path_item, only=False):
 
 register_finder(zipimport.zipimporter, find_in_zip)
 
+
 def StringIO(*args, **kw):
     """Thunk to load the real StringIO on demand"""
     global StringIO
@@ -1716,11 +1603,13 @@ def StringIO(*args, **kw):
         from cStringIO import StringIO
     except ImportError:
         from StringIO import StringIO
-    return StringIO(*args,**kw)
+    return StringIO(*args, **kw)
+
 
 def find_nothing(importer, path_item, only=False):
     return ()
-register_finder(object,find_nothing)
+register_finder(object, find_nothing)
+
 
 def find_on_path(importer, path_item, only=False):
     """Yield distributions accessible on a sys.path directory"""
@@ -1731,7 +1620,7 @@ def find_on_path(importer, path_item, only=False):
             # unpacked egg
             yield Distribution.from_filename(
                 path_item, metadata=PathMetadata(
-                    path_item, os.path.join(path_item,'EGG-INFO')
+                    path_item, os.path.join(path_item, 'EGG-INFO')
                 )
             )
         else:
@@ -1746,18 +1635,19 @@ def find_on_path(importer, path_item, only=False):
                     else:
                         metadata = FileMetadata(fullpath)
                     yield Distribution.from_location(
-                        path_item,entry,metadata,precedence=DEVELOP_DIST
+                        path_item, entry, metadata, precedence=DEVELOP_DIST
                     )
                 elif not only and lower.endswith('.egg'):
                     for dist in find_distributions(os.path.join(path_item, entry)):
                         yield dist
                 elif not only and lower.endswith('.egg-link'):
                     for line in open(os.path.join(path_item, entry)):
-                        if not line.strip(): continue
-                        for item in find_distributions(os.path.join(path_item,line.rstrip())):
+                        if not line.strip():
+                            continue
+                        for item in find_distributions(os.path.join(path_item, line.rstrip())):
                             yield item
                         break
-register_finder(ImpWrapper,find_on_path)
+register_finder(ImpWrapper, find_on_path)
 
 _declare_state('dict', _namespace_handlers={})
 _declare_state('dict', _namespace_packages={})
@@ -1780,6 +1670,7 @@ def register_namespace_handler(importer_type, namespace_handler):
     """
     _namespace_handlers[importer_type] = namespace_handler
 
+
 def _handle_ns(packageName, path_item):
     """Ensure that named package includes a subpath of path_item (if needed)"""
     importer = get_importer(path_item)
@@ -1791,15 +1682,19 @@ def _handle_ns(packageName, path_item):
     module = sys.modules.get(packageName)
     if module is None:
         module = sys.modules[packageName] = types.ModuleType(packageName)
-        module.__path__ = []; _set_parent_ns(packageName)
-    elif not hasattr(module,'__path__'):
+        module.__path__ = []
+        _set_parent_ns(packageName)
+    elif not hasattr(module, '__path__'):
         raise TypeError("Not a package:", packageName)
     handler = _find_adapter(_namespace_handlers, importer)
-    subpath = handler(importer,path_item,packageName,module)
+    subpath = handler(importer, path_item, packageName, module)
     if subpath is not None:
-        path = module.__path__; path.append(subpath)
-        loader.load_module(packageName); module.__path__ = path
+        path = module.__path__
+        path.append(subpath)
+        loader.load_module(packageName)
+        module.__path__ = path
     return subpath
+
 
 def declare_namespace(packageName):
     """Declare that package 'packageName' is a namespace package"""
@@ -1822,8 +1717,8 @@ def declare_namespace(packageName):
 
         # Track what packages are namespaces, so when new path items are added,
         # they can be updated
-        _namespace_packages.setdefault(parent,[]).append(packageName)
-        _namespace_packages.setdefault(packageName,[])
+        _namespace_packages.setdefault(parent, []).append(packageName)
+        _namespace_packages.setdefault(packageName, [])
 
         for path_item in path:
             # Ensure all the parent's path items are reflected in the child,
@@ -1833,15 +1728,18 @@ def declare_namespace(packageName):
     finally:
         imp.release_lock()
 
+
 def fixup_namespace_packages(path_item, parent=None):
     """Ensure that previously-declared namespace packages include path_item"""
     imp.acquire_lock()
     try:
-        for package in _namespace_packages.get(parent,()):
+        for package in _namespace_packages.get(parent, ()):
             subpath = _handle_ns(package, path_item)
-            if subpath: fixup_namespace_packages(subpath,package)
+            if subpath:
+                fixup_namespace_packages(subpath, package)
     finally:
         imp.release_lock()
+
 
 def file_ns_handler(importer, path_item, packageName, module):
     """Compute an ns-package subpath for a filesystem or zipfile importer"""
@@ -1849,32 +1747,34 @@ def file_ns_handler(importer, path_item, packageName, module):
     subpath = os.path.join(path_item, packageName.split('.')[-1])
     normalized = _normalize_cached(subpath)
     for item in module.__path__:
-        if _normalize_cached(item)==normalized:
+        if _normalize_cached(item) == normalized:
             break
     else:
         # Only return the path if it's not already there
         return subpath
 
-register_namespace_handler(ImpWrapper,file_ns_handler)
-register_namespace_handler(zipimport.zipimporter,file_ns_handler)
+register_namespace_handler(ImpWrapper, file_ns_handler)
+register_namespace_handler(zipimport.zipimporter, file_ns_handler)
 
 
 def null_ns_handler(importer, path_item, packageName, module):
     return None
 
-register_namespace_handler(object,null_ns_handler)
+register_namespace_handler(object, null_ns_handler)
 
 
 def normalize_path(filename):
     """Normalize a file/dir name for comparison purposes"""
     return os.path.normcase(os.path.realpath(filename))
 
-def _normalize_cached(filename,_cache={}):
+
+def _normalize_cached(filename, _cache={}):
     try:
         return _cache[filename]
     except KeyError:
         _cache[filename] = result = normalize_path(filename)
         return result
+
 
 def _set_parent_ns(packageName):
     parts = packageName.split('.')
@@ -1886,7 +1786,7 @@ def _set_parent_ns(packageName):
 
 def yield_lines(strs):
     """Yield non-empty/non-comment lines of a ``basestring`` or sequence"""
-    if isinstance(strs,basestring):
+    if isinstance(strs, basestring):
         for s in strs.splitlines():
             s = s.strip()
             if s and not s.startswith('#'):     # skip blank lines/comments
@@ -1898,12 +1798,12 @@ def yield_lines(strs):
 
 LINE_END = re.compile(r"\s*(#.*)?$").match         # whitespace and comment
 CONTINUE = re.compile(r"\s*\\\s*(#.*)?$").match    # line continuation
-DISTRO   = re.compile(r"\s*((\w|[-.])+)").match    # Distribution or extra
-VERSION  = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match  # ver. info
-COMMA    = re.compile(r"\s*,").match               # comma between items
+DISTRO = re.compile(r"\s*((\w|[-.])+)").match    # Distribution or extra
+VERSION = re.compile(r"\s*(<=?|>=?|==|!=)\s*((\w|[-.])+)").match  # ver. info
+COMMA = re.compile(r"\s*,").match               # comma between items
 OBRACKET = re.compile(r"\s*\[").match
 CBRACKET = re.compile(r"\s*\]").match
-MODULE   = re.compile(r"\w+(\.\w+)*$").match
+MODULE = re.compile(r"\w+(\.\w+)*$").match
 EGG_NAME = re.compile(
     r"(?P<name>[^-]+)"
     r"( -(?P<ver>[^-]+) (-py(?P<pyver>[^-]+) (-(?P<plat>.+))? )? )?",
@@ -1911,19 +1811,22 @@ EGG_NAME = re.compile(
 ).match
 
 component_re = re.compile(r'(\d+ | [a-z]+ | \.| -)', re.VERBOSE)
-replace = {'pre':'c', 'preview':'c','-':'final-','rc':'c','dev':'@'}.get
+replace = {'pre': 'c', 'preview': 'c',
+           '-': 'final-', 'rc': 'c', 'dev': '@'}.get
+
 
 def _parse_version_parts(s):
     for part in component_re.split(s):
-        part = replace(part,part)
+        part = replace(part, part)
         if part in ['', '.']:
             continue
         if part[:1] in '0123456789':
             yield part.zfill(8)    # pad for numeric comparison
         else:
-            yield '*'+part
+            yield '*' + part
 
     yield '*final'  # ensure that alpha/beta/candidate are before final
+
 
 def parse_version(s):
     """Convert a version string to a chronologically-sortable key
@@ -1960,12 +1863,14 @@ def parse_version(s):
     for part in _parse_version_parts(s.lower()):
         if part.startswith('*'):
             # remove trailing zeros from each series of numeric parts
-            while parts and parts[-1]=='00000000':
+            while parts and parts[-1] == '00000000':
                 parts.pop()
         parts.append(part)
     return tuple(parts)
 
+
 class EntryPoint(object):
+
     """Object representing an advertised importable object"""
 
     def __init__(self, name, module_name, attrs=(), extras=(), dist=None):
@@ -1989,22 +1894,22 @@ class EntryPoint(object):
         return "EntryPoint.parse(%r)" % str(self)
 
     def load(self, require=True, env=None, installer=None):
-        if require: self.require(env, installer)
-        entry = __import__(self.module_name, globals(),globals(), ['__name__'])
+        if require:
+            self.require(env, installer)
+        entry = __import__(
+            self.module_name, globals(), globals(), ['__name__'])
         for attr in self.attrs:
             try:
-                entry = getattr(entry,attr)
+                entry = getattr(entry, attr)
             except AttributeError:
-                raise ImportError("%r has no %r attribute" % (entry,attr))
+                raise ImportError("%r has no %r attribute" % (entry, attr))
         return entry
 
     def require(self, env=None, installer=None):
         if self.extras and not self.dist:
             raise UnknownExtra("Can't require() without a distribution", self)
         map(working_set.add,
-            working_set.resolve(self.dist.requires(self.extras),env,installer))
-
-
+            working_set.resolve(self.dist.requires(self.extras), env, installer))
 
     #@classmethod
     def parse(cls, src, dist=None):
@@ -2019,14 +1924,15 @@ class EntryPoint(object):
         """
         try:
             attrs = extras = ()
-            name,value = src.split('=',1)
+            name, value = src.split('=', 1)
             if '[' in value:
-                value,extras = value.split('[',1)
-                req = Requirement.parse("x["+extras)
-                if req.specs: raise ValueError
+                value, extras = value.split('[', 1)
+                req = Requirement.parse("x[" + extras)
+                if req.specs:
+                    raise ValueError
                 extras = req.extras
             if ':' in value:
-                value,attrs = value.split(':',1)
+                value, attrs = value.split(':', 1)
                 if not MODULE(attrs.rstrip()):
                     raise ValueError
                 attrs = attrs.rstrip().split('.')
@@ -2040,13 +1946,6 @@ class EntryPoint(object):
 
     parse = classmethod(parse)
 
-
-
-
-
-
-
-
     #@classmethod
     def parse_group(cls, group, lines, dist=None):
         """Parse an entry point group"""
@@ -2057,7 +1956,7 @@ class EntryPoint(object):
             ep = cls.parse(line, dist)
             if ep.name in this:
                 raise ValueError("Duplicate entry point", group, ep.name)
-            this[ep.name]=ep
+            this[ep.name] = ep
         return this
 
     parse_group = classmethod(parse_group)
@@ -2065,7 +1964,7 @@ class EntryPoint(object):
     #@classmethod
     def parse_map(cls, data, dist=None):
         """Parse a map of entry point groups"""
-        if isinstance(data,dict):
+        if isinstance(data, dict):
             data = data.items()
         else:
             data = split_sections(data)
@@ -2094,11 +1993,13 @@ def _remove_md5_fragment(location):
 
 
 class Distribution(object):
+
     """Wrap an actual or potential sys.path entry w/metadata"""
+
     def __init__(self,
-        location=None, metadata=None, project_name=None, version=None,
-        py_version=PY_MAJOR, platform=None, precedence = EGG_DIST
-    ):
+                 location=None, metadata=None, project_name=None, version=None,
+                 py_version=PY_MAJOR, platform=None, precedence=EGG_DIST
+                 ):
         self.project_name = safe_name(project_name or 'Unknown')
         if version is not None:
             self._version = safe_version(version)
@@ -2109,14 +2010,14 @@ class Distribution(object):
         self._provider = metadata or empty_provider
 
     #@classmethod
-    def from_location(cls,location,basename,metadata=None,**kw):
-        project_name, version, py_version, platform = [None]*4
+    def from_location(cls, location, basename, metadata=None, **kw):
+        project_name, version, py_version, platform = [None] * 4
         basename, ext = os.path.splitext(basename)
-        if ext.lower() in (".egg",".egg-info"):
+        if ext.lower() in (".egg", ".egg-info"):
             match = EGG_NAME(basename)
             if match:
                 project_name, version, py_version, platform = match.group(
-                    'name','ver','pyver','plat'
+                    'name', 'ver', 'pyver', 'plat'
                 )
         return cls(
             location, metadata, project_name=project_name, version=version,
@@ -2124,10 +2025,9 @@ class Distribution(object):
         )
     from_location = classmethod(from_location)
 
-
     hashcmp = property(
         lambda self: (
-            getattr(self,'parsed_version',()),
+            getattr(self, 'parsed_version', ()),
             self.precedence,
             self.key,
             _remove_md5_fragment(self.location),
@@ -2135,20 +2035,28 @@ class Distribution(object):
             self.platform
         )
     )
-    def __hash__(self): return hash(self.hashcmp)
+
+    def __hash__(self):
+        return hash(self.hashcmp)
+
     def __lt__(self, other):
         return self.hashcmp < other.hashcmp
+
     def __le__(self, other):
         return self.hashcmp <= other.hashcmp
+
     def __gt__(self, other):
         return self.hashcmp > other.hashcmp
+
     def __ge__(self, other):
         return self.hashcmp >= other.hashcmp
+
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             # It's not a Distribution, so they are not equal
             return False
         return self.hashcmp == other.hashcmp
+
     def __ne__(self, other):
         return not self == other
 
@@ -2182,16 +2090,13 @@ class Distribution(object):
         except AttributeError:
             for line in self._get_metadata('PKG-INFO'):
                 if line.lower().startswith('version:'):
-                    self._version = safe_version(line.split(':',1)[1].strip())
+                    self._version = safe_version(line.split(':', 1)[1].strip())
                     return self._version
             else:
                 raise ValueError(
                     "Missing 'Version:' header and/or PKG-INFO file", self
                 )
     version = property(version)
-
-
-
 
     #@property
     def _dep_map(self):
@@ -2200,17 +2105,18 @@ class Distribution(object):
         except AttributeError:
             dm = self.__dep_map = {None: []}
             for name in 'requires.txt', 'depends.txt':
-                for extra,reqs in split_sections(self._get_metadata(name)):
-                    if extra: extra = safe_extra(extra)
-                    dm.setdefault(extra,[]).extend(parse_requirements(reqs))
+                for extra, reqs in split_sections(self._get_metadata(name)):
+                    if extra:
+                        extra = safe_extra(extra)
+                    dm.setdefault(extra, []).extend(parse_requirements(reqs))
             return dm
     _dep_map = property(_dep_map)
 
-    def requires(self,extras=()):
+    def requires(self, extras=()):
         """List of Requirements needed for this distro if `extras` are used"""
         dm = self._dep_map
         deps = []
-        deps.extend(dm.get(None,()))
+        deps.extend(dm.get(None, ()))
         for ext in extras:
             try:
                 deps.extend(dm[safe_extra(ext)])
@@ -2220,19 +2126,20 @@ class Distribution(object):
                 )
         return deps
 
-    def _get_metadata(self,name):
+    def _get_metadata(self, name):
         if self.has_metadata(name):
             for line in self.get_metadata_lines(name):
                 yield line
 
-    def activate(self,path=None):
+    def activate(self, path=None):
         """Ensure distribution is importable on `path` (default=sys.path)"""
-        if path is None: path = sys.path
+        if path is None:
+            path = sys.path
         self.insert_on(path)
         if path is sys.path:
             fixup_namespace_packages(self.location)
-            map(declare_namespace, self._get_metadata('namespace_packages.txt'))
-
+            map(declare_namespace, self._get_metadata(
+                'namespace_packages.txt'))
 
     def egg_name(self):
         """Return what this distribution's standard .egg filename should be"""
@@ -2242,29 +2149,31 @@ class Distribution(object):
         )
 
         if self.platform:
-            filename += '-'+self.platform
+            filename += '-' + self.platform
         return filename
 
     def __repr__(self):
         if self.location:
-            return "%s (%s)" % (self,self.location)
+            return "%s (%s)" % (self, self.location)
         else:
             return str(self)
 
     def __str__(self):
-        try: version = getattr(self,'version',None)
-        except ValueError: version = None
+        try:
+            version = getattr(self, 'version', None)
+        except ValueError:
+            version = None
         version = version or "[unknown version]"
-        return "%s %s" % (self.project_name,version)
+        return "%s %s" % (self.project_name, version)
 
-    def __getattr__(self,attr):
+    def __getattr__(self, attr):
         """Delegate all unrecognized public attributes to .metadata provider"""
         if attr.startswith('_'):
-            raise AttributeError,attr
+            raise AttributeError, attr
         return getattr(self._provider, attr)
 
     #@classmethod
-    def from_filename(cls,filename,metadata=None, **kw):
+    def from_filename(cls, filename, metadata=None, **kw):
         return cls.from_location(
             _normalize_cached(filename), os.path.basename(filename), metadata,
             **kw
@@ -2277,9 +2186,9 @@ class Distribution(object):
 
     def load_entry_point(self, group, name):
         """Return the `name` entry point of `group` or raise ImportError"""
-        ep = self.get_entry_info(group,name)
+        ep = self.get_entry_info(group, name)
         if ep is None:
-            raise ImportError("Entry point %r not found" % ((group,name),))
+            raise ImportError("Entry point %r not found" % ((group, name),))
         return ep.load()
 
     def get_entry_map(self, group=None):
@@ -2291,32 +2200,14 @@ class Distribution(object):
                 self._get_metadata('entry_points.txt'), self
             )
         if group is not None:
-            return ep_map.get(group,{})
+            return ep_map.get(group, {})
         return ep_map
 
     def get_entry_info(self, group, name):
         """Return the EntryPoint object for `group`+`name`, or ``None``"""
         return self.get_entry_map(group).get(name)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    def insert_on(self, path, loc = None):
+    def insert_on(self, path, loc=None):
         """Insert self.location in path before its nearest parent directory"""
 
         loc = loc or self.location
@@ -2339,13 +2230,13 @@ class Distribution(object):
 
         nloc = _normalize_cached(loc)
         bdir = os.path.dirname(nloc)
-        npath= map(_normalize_cached, path)
+        npath = map(_normalize_cached, path)
 
         bp = None
         for p, item in enumerate(npath):
-            if item==nloc:
+            if item == nloc:
                 break
-            elif item==bdir and self.precedence==EGG_DIST:
+            elif item == bdir and self.precedence == EGG_DIST:
                 # if it's an .egg, give it precedence over its directory
                 path.insert(p, loc)
                 npath.insert(p, nloc)
@@ -2357,7 +2248,7 @@ class Distribution(object):
         # p is the spot where we found or inserted loc; now remove duplicates
         while 1:
             try:
-                np = npath.index(nloc, p+1)
+                np = npath.index(nloc, p + 1)
             except ValueError:
                 break
             else:
@@ -2366,18 +2257,16 @@ class Distribution(object):
 
         return
 
-
-
     def check_version_conflict(self):
-        if self.key=='distribute':
+        if self.key == 'distribute':
             return      # ignore the inevitable setuptools self-conflicts  :(
 
         nsp = dict.fromkeys(self._get_metadata('namespace_packages.txt'))
         loc = normalize_path(self.location)
         for modname in self._get_metadata('top_level.txt'):
             if (modname not in sys.modules or modname in nsp
-                or modname in _namespace_packages
-            ):
+                    or modname in _namespace_packages
+                ):
                 continue
             if modname in ('pkg_resources', 'setuptools', 'site'):
                 continue
@@ -2394,22 +2283,19 @@ class Distribution(object):
         try:
             self.version
         except ValueError:
-            issue_warning("Unbuilt egg for "+repr(self))
+            issue_warning("Unbuilt egg for " + repr(self))
             return False
         return True
 
-    def clone(self,**kw):
+    def clone(self, **kw):
         """Copy this distribution, substituting in any changed keyword args"""
         for attr in (
             'project_name', 'version', 'py_version', 'platform', 'location',
             'precedence'
         ):
-            kw.setdefault(attr, getattr(self,attr,None))
+            kw.setdefault(attr, getattr(self, attr, None))
         kw.setdefault('metadata', self._provider)
         return self.__class__(**kw)
-
-
-
 
     #@property
     def extras(self):
@@ -2417,7 +2303,7 @@ class Distribution(object):
     extras = property(extras)
 
 
-def issue_warning(*args,**kw):
+def issue_warning(*args, **kw):
     level = 1
     g = globals()
     try:
@@ -2428,28 +2314,7 @@ def issue_warning(*args,**kw):
     except ValueError:
         pass
     from warnings import warn
-    warn(stacklevel = level+1, *args, **kw)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    warn(stacklevel=level + 1, *args, **kw)
 
 
 def parse_requirements(strs):
@@ -2461,36 +2326,39 @@ def parse_requirements(strs):
     # create a steppable iterator, so we can handle \-continuations
     lines = iter(yield_lines(strs))
 
-    def scan_list(ITEM,TERMINATOR,line,p,groups,item_name):
+    def scan_list(ITEM, TERMINATOR, line, p, groups, item_name):
 
         items = []
 
-        while not TERMINATOR(line,p):
-            if CONTINUE(line,p):
+        while not TERMINATOR(line, p):
+            if CONTINUE(line, p):
                 try:
-                    line = lines.next(); p = 0
+                    line = lines.next()
+                    p = 0
                 except StopIteration:
                     raise ValueError(
                         "\\ must not appear on the last nonblank line"
                     )
 
-            match = ITEM(line,p)
+            match = ITEM(line, p)
             if not match:
-                raise ValueError("Expected "+item_name+" in",line,"at",line[p:])
+                raise ValueError(
+                    "Expected " + item_name + " in", line, "at", line[p:])
 
             items.append(match.group(*groups))
             p = match.end()
 
-            match = COMMA(line,p)
+            match = COMMA(line, p)
             if match:
-                p = match.end() # skip the comma
-            elif not TERMINATOR(line,p):
+                p = match.end()  # skip the comma
+            elif not TERMINATOR(line, p):
                 raise ValueError(
-                    "Expected ',' or end-of-list in",line,"at",line[p:]
+                    "Expected ',' or end-of-list in", line, "at", line[p:]
                 )
 
-        match = TERMINATOR(line,p)
-        if match: p = match.end()   # skip the terminator, if any
+        match = TERMINATOR(line, p)
+        if match:
+            p = match.end()   # skip the terminator, if any
         return line, p, items
 
     for line in lines:
@@ -2501,50 +2369,39 @@ def parse_requirements(strs):
         p = match.end()
         extras = []
 
-        match = OBRACKET(line,p)
+        match = OBRACKET(line, p)
         if match:
             p = match.end()
             line, p, extras = scan_list(
                 DISTRO, CBRACKET, line, p, (1,), "'extra' name"
             )
 
-        line, p, specs = scan_list(VERSION,LINE_END,line,p,(1,2),"version spec")
-        specs = [(op,safe_version(val)) for op,val in specs]
+        line, p, specs = scan_list(
+            VERSION, LINE_END, line, p, (1, 2), "version spec")
+        specs = [(op, safe_version(val)) for op, val in specs]
         yield Requirement(project_name, specs, extras)
 
 
 def _sort_dists(dists):
-    tmp = [(dist.hashcmp,dist) for dist in dists]
+    tmp = [(dist.hashcmp, dist) for dist in dists]
     tmp.sort()
-    dists[::-1] = [d for hc,d in tmp]
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    dists[::-1] = [d for hc, d in tmp]
 
 
 class Requirement:
+
     def __init__(self, project_name, specs, extras):
         """DO NOT CALL THIS UNDOCUMENTED METHOD; use Requirement.parse()!"""
         self.unsafe_name, project_name = project_name, safe_name(project_name)
         self.project_name, self.key = project_name, project_name.lower()
-        index = [(parse_version(v),state_machine[op],op,v) for op,v in specs]
+        index = [(parse_version(v), state_machine[op], op, v)
+                 for op, v in specs]
         index.sort()
-        self.specs = [(op,ver) for parsed,trans,op,ver in index]
-        self.index, self.extras = index, tuple(map(safe_extra,extras))
+        self.specs = [(op, ver) for parsed, trans, op, ver in index]
+        self.index, self.extras = index, tuple(map(safe_extra, extras))
         self.hashCmp = (
-            self.key, tuple([(op,parsed) for parsed,trans,op,ver in index]),
+            self.key, tuple([(op, parsed)
+                            for parsed, trans, op, ver in index]),
             frozenset(self.extras)
         )
         self.__hash = hash(self.hashCmp)
@@ -2552,34 +2409,42 @@ class Requirement:
     def __str__(self):
         specs = ','.join([''.join(s) for s in self.specs])
         extras = ','.join(self.extras)
-        if extras: extras = '[%s]' % extras
+        if extras:
+            extras = '[%s]' % extras
         return '%s%s%s' % (self.project_name, extras, specs)
 
-    def __eq__(self,other):
-        return isinstance(other,Requirement) and self.hashCmp==other.hashCmp
+    def __eq__(self, other):
+        return isinstance(other, Requirement) and self.hashCmp == other.hashCmp
 
-    def __contains__(self,item):
-        if isinstance(item,Distribution):
-            if item.key <> self.key: return False
-            if self.index: item = item.parsed_version  # only get if we need it
-        elif isinstance(item,basestring):
+    def __contains__(self, item):
+        if isinstance(item, Distribution):
+            if item.key <> self.key:
+                return False
+            if self.index:
+                item = item.parsed_version  # only get if we need it
+        elif isinstance(item, basestring):
             item = parse_version(item)
         last = None
-        compare = lambda a, b: (a > b) - (a < b) # -1, 0, 1
-        for parsed,trans,op,ver in self.index:
-            action = trans[compare(item,parsed)] # Indexing: 0, 1, -1
-            if action=='F':     return False
-            elif action=='T':   return True
-            elif action=='+':   last = True
-            elif action=='-' or last is None:   last = False
-        if last is None: last = True    # no rules encountered
+        compare = lambda a, b: (a > b) - (a < b)  # -1, 0, 1
+        for parsed, trans, op, ver in self.index:
+            action = trans[compare(item, parsed)]  # Indexing: 0, 1, -1
+            if action == 'F':
+                return False
+            elif action == 'T':
+                return True
+            elif action == '+':
+                last = True
+            elif action == '-' or last is None:
+                last = False
+        if last is None:
+            last = True    # no rules encountered
         return last
-
 
     def __hash__(self):
         return self.__hash
 
-    def __repr__(self): return "Requirement.parse(%r)" % str(self)
+    def __repr__(self):
+        return "Requirement.parse(%r)" % str(self)
 
     #@staticmethod
     def parse(s, replacement=True):
@@ -2605,9 +2470,9 @@ class Requirement:
 
 state_machine = {
     #       =><
-    '<' :  '--T',
+    '<':  '--T',
     '<=':  'T-T',
-    '>' :  'F+F',
+    '>':  'F+F',
     '>=':  'T+F',
     '==':  'T..',
     '!=':  'F++',
@@ -2636,10 +2501,12 @@ def _override_setuptools(req):
 
 def _get_mro(cls):
     """Get an mro for a type or classic class"""
-    if not isinstance(cls,type):
-        class cls(cls,object): pass
+    if not isinstance(cls, type):
+        class cls(cls, object):
+            pass
         return cls.__mro__[1:]
     return cls.__mro__
+
 
 def _find_adapter(registry, ob):
     """Return an adapter factory for `ob` from `registry`"""
@@ -2653,6 +2520,7 @@ def ensure_directory(path):
     dirname = os.path.dirname(path)
     if not os.path.isdir(dirname):
         os.makedirs(dirname)
+
 
 def split_sections(s):
     """Split a string or iterable thereof into (section,content) pairs
@@ -2679,18 +2547,21 @@ def split_sections(s):
     # wrap up last segment
     yield section, content
 
-def _mkstemp(*args,**kw):
+
+def _mkstemp(*args, **kw):
     from tempfile import mkstemp
     old_open = os.open
     try:
         os.open = os_open   # temporarily bypass sandboxing
-        return mkstemp(*args,**kw)
+        return mkstemp(*args, **kw)
     finally:
         os.open = old_open  # and then put it back
 
 
 # Set up global resource manager (deliberately not state-saved)
 _manager = ResourceManager()
+
+
 def _initialize(g):
     for name in dir(_manager):
         if not name.startswith('_'):
@@ -2698,13 +2569,13 @@ def _initialize(g):
 _initialize(globals())
 
 # Prepare the master working set and make the ``require()`` API available
-_declare_state('object', working_set = WorkingSet())
+_declare_state('object', working_set=WorkingSet())
 
 try:
     # Does the main program list any requirements?
     from __main__ import __requires__
 except ImportError:
-    pass # No: just use the default working set based on sys.path
+    pass  # No: just use the default working set based on sys.path
 else:
     # Yes: ensure the requirements are met, by prefixing sys.path if necessary
     try:
@@ -2729,5 +2600,5 @@ run_main = run_script   # backward compatibility
 # all distributions added to the working set in the future (e.g. by
 # calling ``require()``) will get activated as well.
 add_activation_listener(lambda dist: dist.activate())
-working_set.entries=[]; map(working_set.add_entry,sys.path) # match order
-
+working_set.entries = []
+map(working_set.add_entry, sys.path)  # match order

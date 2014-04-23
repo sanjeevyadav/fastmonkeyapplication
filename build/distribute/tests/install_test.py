@@ -20,7 +20,7 @@ f.write(file.read())
 f.close()
 
 # running it
-args = [sys.executable]  + ['distribute_setup.py']
+args = [sys.executable] + ['distribute_setup.py']
 if is_jython:
     res = subprocess.call(args)
 else:
@@ -57,7 +57,7 @@ finally:
     f.close()
 
 try:
-    args = [sys.executable]  + [script_name]
+    args = [sys.executable] + [script_name]
     if is_jython:
         res = subprocess.call(args)
     else:
@@ -72,4 +72,3 @@ finally:
     if os.path.exists(script_name):
         os.remove(script_name)
     os.remove('distribute_setup.py')
-

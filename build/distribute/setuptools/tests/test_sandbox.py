@@ -8,6 +8,7 @@ import tempfile
 
 from setuptools.sandbox import DirectorySandbox, SandboxViolation
 
+
 def has_win32com():
     """
     Run this to determine if the local machine has win32com, and if it
@@ -20,6 +21,7 @@ def has_win32com():
     except ImportError:
         return False
     return True
+
 
 class TestSandbox(unittest.TestCase):
 
@@ -58,9 +60,11 @@ class TestSandbox(unittest.TestCase):
                 try:
                     sandbox.run(self._file_writer(target))
                 except SandboxViolation:
-                    self.fail("Could not create gen_py file due to SandboxViolation")
+                    self.fail(
+                        "Could not create gen_py file due to SandboxViolation")
             finally:
-                if os.path.exists(target): os.remove(target)
+                if os.path.exists(target):
+                    os.remove(target)
 
 if __name__ == '__main__':
     unittest.main()

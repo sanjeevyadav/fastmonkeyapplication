@@ -14,6 +14,7 @@ from distribute_setup import (use_setuptools, _build_egg, _python_cmd,
                               DEFAULT_VERSION)
 import distribute_setup
 
+
 class TestSetup(unittest.TestCase):
 
     def urlopen(self, url):
@@ -63,6 +64,7 @@ class TestSetup(unittest.TestCase):
         # make sure fake_setuptools is not called by default
         import pkg_resources
         del pkg_resources._distribute
+
         def fake_setuptools(*args):
             raise AssertionError
 

@@ -16,6 +16,7 @@ from distribute.resources.util import ensure_directory
 
 
 class UnrecognizedFormat(DistutilsError):
+
     """Couldn't recognize the archive type"""
 
 

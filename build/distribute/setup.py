@@ -16,13 +16,15 @@ if sys.version_info >= (3,):
     outfiles_2to3 = []
     dist_script = os.path.join("build", "src", "distribute_setup.py")
     for f in fl.files:
-        outf, copied = file_util.copy_file(f, os.path.join(tmp_src, f), update=1)
+        outf, copied = file_util.copy_file(
+            f, os.path.join(tmp_src, f), update=1)
         if copied and outf.endswith(".py") and outf != dist_script:
             outfiles_2to3.append(outf)
         if copied and outf.endswith('api_tests.txt'):
             # XXX support this in distutils as well
             from lib2to3.main import main
-            main('lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
+            main(
+                'lib2to3.fixes', ['-wd', os.path.join(tmp_src, 'tests', 'api_tests.txt')])
 
     util.run_2to3(outfiles_2to3)
 
@@ -47,10 +49,14 @@ scripts = []
 
 console_scripts = ["easy_install = setuptools.command.easy_install:main"]
 if os.environ.get("DISTRIBUTE_DISABLE_VERSIONED_EASY_INSTALL_SCRIPT") is None:
-    console_scripts.append("easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
+    console_scripts.append(
+        "easy_install-%s = setuptools.command.easy_install:main" % sys.version[:3])
 
 # specific command that is used to generate windows .exe files
+
+
 class build_py(_build_py):
+
     def build_package_data(self):
         """Copy data files into build directory"""
         lastdir = None
@@ -70,8 +76,11 @@ class build_py(_build_py):
                 if copied and srcfile in self.distribution.convert_2to3_doctests:
                     self.__doctests_2to3.append(outf)
 
+
 class test(_test):
+
     """Specific test class to avoid rewriting the entry_points.txt"""
+
     def run(self):
         entry_points = os.path.join('distribute.egg-info', 'entry_points.txt')
 
@@ -106,10 +115,12 @@ def _easy_install_marker():
     return (len(sys.argv) == 5 and sys.argv[2] == 'bdist_egg' and
             sys.argv[3] == '--dist-dir' and 'egg-dist-tmp-' in sys.argv[-1])
 
+
 def _buildout_marker():
     command = os.environ.get('_')
     if command:
         return 'buildout' in os.path.basename(command)
+
 
 def _being_installed():
     if os.environ.get('DONT_PATCH_SETUPTOOLS') is not None:
@@ -118,9 +129,10 @@ def _being_installed():
         # Installed by buildout, don't mess with a global setuptools.
         return False
     # easy_install marker
-    if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]: # Don't bother doing anything if they're just asking for help
+    # Don't bother doing anything if they're just asking for help
+    if "--help" in sys.argv[1:] or "-h" in sys.argv[1:]:
         return False
-    return  'install' in sys.argv[1:] or _easy_install_marker()
+    return 'install' in sys.argv[1:] or _easy_install_marker()
 
 if _being_installed():
     from distribute_setup import _before_install
@@ -135,22 +147,22 @@ dist = setup(
     author="The fellowship of the packaging",
     author_email="distutils-sig@python.org",
     license="PSF or ZPL",
-    long_description = open('README.txt').read() + open('CHANGES.txt').read(),
-    keywords = "CPAN PyPI distutils eggs package management",
-    url = "http://packages.python.org/distribute",
-    test_suite = 'setuptools.tests',
-    src_root = src_root,
-    packages = find_packages(),
-    package_data = {'setuptools':['*.exe']},
+    long_description=open('README.txt').read() + open('CHANGES.txt').read(),
+    keywords="CPAN PyPI distutils eggs package management",
+    url="http://packages.python.org/distribute",
+    test_suite='setuptools.tests',
+    src_root=src_root,
+    packages=find_packages(),
+    package_data={'setuptools': ['*.exe']},
 
-    py_modules = ['pkg_resources', 'easy_install', 'site'],
+    py_modules=['pkg_resources', 'easy_install', 'site'],
 
-    zip_safe = (sys.version>="2.5"),   # <2.5 needs unzipped for -m to work
+    zip_safe=(sys.version >= "2.5"),   # <2.5 needs unzipped for -m to work
 
     cmdclass = {'test': test},
     entry_points = {
 
-        "distutils.commands" : [
+        "distutils.commands": [
             "%(cmd)s = setuptools.command.%(cmd)s:%(cmd)s" % locals()
             for cmd in SETUP_COMMANDS
         ],
@@ -190,11 +202,11 @@ dist = setup(
         "console_scripts": console_scripts,
 
         "setuptools.file_finders":
-            ["svn_cvs = setuptools.command.sdist:_default_revctrl"],
+        ["svn_cvs = setuptools.command.sdist:_default_revctrl"],
 
         "setuptools.installation":
-            ['eggsecutable = setuptools.command.easy_install:bootstrap'],
-        },
+        ['eggsecutable = setuptools.command.easy_install:bootstrap'],
+    },
 
 
     classifiers = [f.strip() for f in """
@@ -215,5 +227,3 @@ dist = setup(
 if _being_installed():
     from distribute_setup import _after_install
     _after_install(dist)
-
-

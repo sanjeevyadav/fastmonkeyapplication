@@ -6,7 +6,9 @@ from threading import Thread
 from BaseHTTPServer import HTTPServer
 from SimpleHTTPServer import SimpleHTTPRequestHandler
 
+
 class IndexServer(HTTPServer):
+
     """Basic single-threaded http server simulating a package index
 
     You can use this server in unittest like this::
@@ -17,6 +19,7 @@ class IndexServer(HTTPServer):
         # The index files should be located in setuptools/tests/indexes
         s.stop()
     """
+
     def __init__(self):
         HTTPServer.__init__(self, ('', 0), SimpleHTTPRequestHandler)
         self._run = True
@@ -24,7 +27,8 @@ class IndexServer(HTTPServer):
     def serve(self):
         while True:
             self.handle_request()
-            if not self._run: break
+            if not self._run:
+                break
 
     def start(self):
         self.thread = Thread(target=self.serve)

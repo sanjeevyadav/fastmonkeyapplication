@@ -29,6 +29,7 @@ try:
 except NameError:
     bytes = str
 
+
 def b(str_or_bytes):
     """Return bytes by either encoding the argument as ASCII or simply return
     the argument as-is."""
@@ -48,7 +49,7 @@ class upload_docs(upload):
         ('show-response', None,
          'display full response text from server'),
         ('upload-dir=', None, 'directory to upload'),
-        ]
+    ]
     boolean_options = upload.boolean_options
 
     def initialize_options(self):
@@ -120,7 +121,8 @@ class upload_docs(upload):
                 else:
                     fn = b("")
                 body.append(sep_boundary)
-                body.append(b('\nContent-Disposition: form-data; name="%s"'%key))
+                body.append(
+                    b('\nContent-Disposition: form-data; name="%s"' % key))
                 body.append(fn)
                 body.append(b("\n\n"))
                 body.append(b(value))
@@ -144,7 +146,7 @@ class upload_docs(upload):
         elif schema == 'https':
             conn = httplib.HTTPSConnection(netloc)
         else:
-            raise AssertionError("unsupported schema "+schema)
+            raise AssertionError("unsupported schema " + schema)
 
         data = ''
         loglevel = log.INFO
@@ -152,7 +154,7 @@ class upload_docs(upload):
             conn.connect()
             conn.putrequest("POST", url)
             conn.putheader('Content-type',
-                           'multipart/form-data; boundary=%s'%boundary)
+                           'multipart/form-data; boundary=%s' % boundary)
             conn.putheader('Content-length', str(len(body)))
             conn.putheader('Authorization', auth)
             conn.endheaders()
@@ -175,4 +177,4 @@ class upload_docs(upload):
             self.announce('Upload failed (%s): %s' % (r.status, r.reason),
                           log.ERROR)
         if self.show_response:
-            print '-'*75, r.read(), '-'*75
+            print '-' * 75, r.read(), '-' * 75
