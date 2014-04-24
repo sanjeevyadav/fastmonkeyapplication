@@ -13,6 +13,18 @@ followers = db.Table('followers',
                          'followed_id', db.Integer, db.ForeignKey('users.id'))
                      )
 
+#bestfriend = db.Table('bestfriend',
+
+                      #db.Column('id', db.Integer, primary_key=True),
+                      #db.Column(
+                      #    'friendid', db.Integer, db.ForeignKey('users.id'))
+                      #)
+
+bestfriend = db.Table('bestfriend',
+    db.Column('id',db.Integer, db.ForeignKey('users.id'), primary_key = True),
+    db.Column('friendid', db.Integer, db.ForeignKey('users.id'))
+)
+
 
 class Users(db.Model):
     __tablename__ = "users"
@@ -30,6 +42,14 @@ class Users(db.Model):
                                backref = db.backref(
                                    'followers', lazy='dynamic'),
                                lazy = 'dynamic')
+    bestfriends = db.relationship('Users',
+                                  secondary=bestfriend,
+                                  primaryjoin=(bestfriend.c.friendid == id),
+                                  secondaryjoin = (bestfriend.c.id == id),
+                                  backref = db.backref(
+                                      'bestfriend', lazy='dynamic'),
+                                  lazy = 'dynamic')
+                                 
 
     @staticmethod
     def make_unique_username(username):
@@ -59,7 +79,7 @@ class Users(db.Model):
 
     @staticmethod
     def make_valid_email(email):
-        return re.sub('[^a-zA-Z0-9_\.]', '', email)
+        return re.sub('/^\S+@\S+\.\S+$/', '', email)
 
     def is_authenticated(self):
         return True
@@ -86,6 +106,16 @@ class Users(db.Model):
             self.followed.remove(user)
             return self
 
+    def friend(self, user):
+        if not self.is_bestfriend(user):
+            print user
+            self.bestfriends.append(user)
+            return self
+
+    def is_bestfriend(self, user):
+        
+        return self.bestfriends.filter(bestfriend.c.id == user.id).count() > 0
+
     def is_following(self, user):
         return self.followed.filter(followers.c.followed_id == user.id).count() > 0
 
@@ -95,6 +125,19 @@ class Users(db.Model):
     def __repr__(self):
         return '<User %r>' % (self.username)
 
+
+#class bestfriend(db.Model):
+#    __tablename__ = "bestfriend"
+#    id = db.Column('id',db.Integer, db.ForeignKey('users.id'), primary_key = True)
+#    friendid = db.Column('friendid', db.Integer, db.ForeignKey('users.id'))
+    
+    
+
+ #db.Column('id',db.Integer, db.ForeignKey('users.id'), primary_key = True),
+#    db.Column('friendid', db.Integer, db.ForeignKey('users.id'))
+
+#    def __repr__(self):
+#        return '<bestfriend %r>' % (self.id)
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -2,8 +2,10 @@ from flask import render_template, flash, redirect, session, url_for, request, g
 from flask.ext.login import login_user, logout_user, current_user, login_required
 from app import app, db, lm
 from forms import LoginForm, EditForm
-from models import Users, ROLE_USER, ROLE_ADMIN
+from models import Users, ROLE_USER, ROLE_ADMIN, bestfriend
 from pprint import pprint
+from sqlalchemy.sql.expression import select, exists
+from sqlalchemy import exc
 
 
 @lm.user_loader
@@ -82,6 +84,9 @@ def register():
 @login_required
 def user(username):
     user = Users.query.filter_by(username=username).first()
+    users = Users.query.all()
+    #bestfriendsval = Users.query.filter_by(bestfriend.c.id)
+    #print bestfriendsval
     if user == None:
 
         return redirect(url_for('index'))
@@ -92,6 +97,8 @@ def user(username):
     ]
     return render_template('user.html',
                            user=user,
+                           users=users,
+                           #bestfriendsval=bestfriendsval,
                            posts=posts)
 
 
@@ -115,25 +122,60 @@ def editprofile():
 
 @app.route('/follow/<username>')
 def follow(username):
+    print username
     user = Users.query.filter_by(username=username).first()
+    #user = Users.query.all()
     if user == None:
         flash('User ' + username + ' not found.')
         return redirect(url_for('index'))
     if user == g.user:
         flash('You can\'t friend yourself!')
         return redirect(url_for('user', username=username))
+    # for userid in user:
+    print user
     u = g.user.follow(user)
+    print u
     if u is None:
-        flash('Cannot be friend %(username)s.', username=username)
+        #flash('Cannot be friend %(username)s.', username = username)
         return redirect(url_for('user', username=username))
     db.session.add(u)
     db.session.commit()
-    flash('You are now friend with %(nickname)s!', username=username)
+    #flash('You are now friend with %(username)s!', username = username)
+    return redirect(url_for('user', username=username))
+
+
+@app.route('/bestfriend/<username>')
+@login_required
+def bestfriendfun(username):
+    print username
+    user = Users.query.filter_by(username=username).first()
+    if user == None:
+        flash('bestfriend not found.')
+        return redirect(url_for('index'))
+    print user
+    u = g.user.friend(user)
+    # print bestfriend.id
+    if u is None:
+        #flash('Cannot be friend %(username)s.', username = username)
+        return redirect(url_for('user', username=username))
+    
+    try:
+        db.session.add(u)
+        db.session.commit()
+    except exc.IntegrityError:
+        db.session.rollback()
+        flash('you already have best friend')
+    except:
+        flash('There is some issue in adding best friend')
+        raise
+    else:
+        flash('Your bestfriend has been added.')
     return redirect(url_for('user', username=username))
 
 
 @app.route('/unfollow/<username>')
 def unfollow(username):
+    print username
     user = Users.query.filter_by(username=username).first()
     if user == None:
         flash('User ' + username + ' not found.')
@@ -142,13 +184,29 @@ def unfollow(username):
         flash('You can\'t Unfriend yourself!')
         return redirect(url_for('user', username=username))
     u = g.user.unfollow(user)
+    print "uvalue"
     if u is None:
-        flash('Cannot be Unfriend %(username)s.', username=username)
+        #flash('Cannot be Unfriend %(username)s.', username = username)
         return redirect(url_for('user', username=username))
     db.session.add(u)
     db.session.commit()
-    flash('You are now Unfriend with %(nickname)s!', username=username)
+    #flash('You are now Unfriend with %(username)s!', username = username)
     return redirect(url_for('user', username=username))
+
+
+@app.route('/delete/<int:id>')
+@login_required
+def delete(id):
+    print id
+    user = Users.query.get(id)
+    if user == None:
+        flash('user not found.')
+        return redirect(url_for('index'))
+
+    db.session.delete(user)
+    db.session.commit()
+    flash('Your user has been deleted.')
+    return redirect(url_for('index'))
 
 
 @app.route('/logout')

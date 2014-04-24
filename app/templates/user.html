@@ -7,19 +7,114 @@
         <td><img src="{{user.avatar(128)}}"></td>
         <td>
             <h1>Monkey Name: {{user.username}}</h1>
-           <p>{{user.followers.count()}} friend |  
+           <p>{{user.followed.count()}} friend |  
             {% if user.id == g.user.id %}
                 <a href="{{url_for('editprofile')}}">Edit monkey profile</a>
              {% endif %}
-            {% if not g.user.is_following(user) %}
-                | <a href="{{url_for('follow', username = user.username)}}">Friend</a>
-             
-            {% else %}
-                | <a href="{{url_for('unfollow', username = user.username)}}">UnFriend</a>
-             {% endif %}
+            
         </td>
     </tr>
 </table>
+<table class="table table-striped">
+        <thead>
+          <tr>
+            <th>Friend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+           {% if not g.user.is_following(user) %}
+                 {% for u in users %}
+                {% if not u.username == user.username%}
+                {% if  g.user.is_following(u) %}
+                <td> |{{u.username}} <a href="{{url_for('unfollow', username = u.username)}}">UnFriend</a></td></br>
+                {% endif %}
+                {% endif %}
+                 {% endfor %}
+            {% endif %}
+          </tr>
+          
+        </tbody>
+      </table>
+<table class="table table-addfriend">
+        <thead>
+          <tr>
+            <th>Add-Friend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+           {% for u in users %}
+            {% if not u.username == user.username%}
+            {% if not g.user.is_following(u) %}
+             <td>   | {{u.username}} <a href="{{url_for('follow', username = u.username)}}">Friend</a></td>
+             {% endif %}
+             {% endif %}
+            {% endfor %}
+          </tr>
+       </tbody>
+      </table>
+
+<table class="table table-bestfriend">
+        <thead>
+          <tr>
+            <th>BestFriend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+           
+           {% for u in users %}
+                {% if not u.username == user.username%}
+            {% if  g.user.is_bestfriend(u) %}
+
+            <td> |{{u.username}}<a href="{{url_for('bestfriendfun', username = u.username)}}">Bestfriend</a></td>
+             {% endif %}
+             {% endif %}
+             {% endfor %}
+            
+          </tr>
+       </tbody>
+      </table>
+<table class="table table-bestfriend">
+        <thead>
+          <tr>
+            <th>Add BestFriend</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+           
+           {% for u in users %}
+                {% if not u.username == user.username%}
+            {% if not g.user.is_bestfriend(u) %}
+
+            <td> |{{u.username}}<a href="{{url_for('bestfriendfun', username = u.username)}}">Bestfriend</a></td>
+             {% endif %}
+             {% endif %}
+             {% endfor %}
+            
+          </tr>
+       </tbody>
+      </table>
+<table class="table table-deletefriend">
+        <thead>
+          <tr>
+            <th>DeleteMonkey</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+          {% for u in users %}
+              {% if not u.username == user.username%}
+             
+             <td>| {{u.username}}<a href="{{url_for('delete', id = u.id)}}">DeleteMonkey</a></td>
+               {% endif %}
+               {% endfor %}
+          </tr>
+          
+        </tbody>
+      </table>
 <hr>
 {% for post in posts %}
     {% include 'post.html' %}
