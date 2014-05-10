@@ -153,7 +153,7 @@ def bestfriendfun(username):
         return redirect(url_for('index'))
     print user
     u = g.user.friend(user)
-    
+    # print bestfriend.id
     if u is None:
         #flash('Cannot be friend %(username)s.', username = username)
         return redirect(url_for('user', username=username))
@@ -169,6 +169,28 @@ def bestfriendfun(username):
         raise
     else:
         flash('Your bestfriend has been added.')
+    return redirect(url_for('user', username=username))
+
+
+
+@app.route('/unfollow/<username>')
+def unfollow(username):
+    
+    user = Users.query.filter_by(username=username).first()
+    if user == None:
+        flash('User ' + username + ' not found.')
+        return redirect(url_for('index'))
+    if user == g.user:
+        flash('You can\'t Unfriend yourself!')
+        return redirect(url_for('user', username=username))
+    u = g.user.unfollow(user)
+    
+    if u is None:
+        #flash('Cannot be Unfriend %(username)s.', username = username)
+        return redirect(url_for('user', username=username))
+    db.session.add(u)
+    db.session.commit()
+    #flash('You are now Unfriend with %(username)s!', username = username)
     return redirect(url_for('user', username=username))
 
 
