@@ -156,14 +156,13 @@ def bestfriendfun(username):
     
     if u is None:
         #flash('Cannot be friend %(username)s.', username = username)
-    
-    try:
+     try:
         db.session.add(u)
         db.session.commit()
-    except exc.IntegrityError:
+     except exc.IntegrityError:
         db.session.rollback()
         flash('you already have best friend')
-    except:
+     except:
         flash('There is some issue in adding best friend')
         raise
     else:
