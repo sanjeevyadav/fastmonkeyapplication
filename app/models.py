@@ -108,7 +108,7 @@ class Users(db.Model):
 
     def friend(self, user):
         if not self.is_bestfriend(user):
-            print user
+            
             self.bestfriends.append(user)
             return self
 
