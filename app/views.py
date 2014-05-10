@@ -72,10 +72,18 @@ def register():
         return render_template('register.html')
     user = Users(
         request.form['username'], request.form['password'], request.form['email'])
-    db.session.add(user)
-    db.session.commit()
-    flash('User successfully registered')
-    return redirect(url_for('login'))
+    try:
+        db.session.add(user)
+        db.session.commit()
+    except exc.IntegrityError:
+        db.session.rollback()
+        flash('user is already registred')
+    except:
+        flash('There is some issue in adding best friend')
+        raise
+    else:
+        flash('User successfully registered')
+    return  redirect(url_for('login'))
 
 
 @app.route('/user/<username>')
