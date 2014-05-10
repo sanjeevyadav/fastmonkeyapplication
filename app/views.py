@@ -146,48 +146,29 @@ def follow(username):
 @app.route('/bestfriend/<username>')
 @login_required
 def bestfriendfun(username):
-    
+    print username
     user = Users.query.filter_by(username=username).first()
     if user == None:
         flash('bestfriend not found.')
         return redirect(url_for('index'))
-    
+    print user
     u = g.user.friend(user)
     
     if u is None:
         #flash('Cannot be friend %(username)s.', username = username)
-     try:
+        return redirect(url_for('user', username=username))
+    
+    try:
         db.session.add(u)
         db.session.commit()
-     except exc.IntegrityError:
+    except exc.IntegrityError:
         db.session.rollback()
         flash('you already have best friend')
-     except:
+    except:
         flash('There is some issue in adding best friend')
         raise
     else:
         flash('Your bestfriend has been added.')
-    return redirect(url_for('user', username=username))
-
-
-@app.route('/unfollow/<username>')
-def unfollow(username):
-    
-    user = Users.query.filter_by(username=username).first()
-    if user == None:
-        flash('User ' + username + ' not found.')
-        return redirect(url_for('index'))
-    if user == g.user:
-        flash('You can\'t Unfriend yourself!')
-        return redirect(url_for('user', username=username))
-    u = g.user.unfollow(user)
-    
-    if u is None:
-        #flash('Cannot be Unfriend %(username)s.', username = username)
-        return redirect(url_for('user', username=username))
-    db.session.add(u)
-    db.session.commit()
-    #flash('You are now Unfriend with %(username)s!', username = username)
     return redirect(url_for('user', username=username))
 
 
