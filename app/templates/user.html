@@ -24,7 +24,7 @@
         <tbody>
           <tr>
            {% if not g.user.is_following(user) %}
-                 {% for u in users %}
+                 {% for u in users|sort(attribute='username') %}
                 {% if not u.username == user.username%}
                 {% if  g.user.is_following(u) %}
                 <td> |{{u.username}} <a href="{{url_for('unfollow', username = u.username)}}">UnFriend</a></td></br>
@@ -44,9 +44,9 @@
         </thead>
         <tbody>
           <tr>
-           {% for u in users %}
-            {% if not u.username == user.username%}
-            {% if not g.user.is_following(u) %}
+           {% for u in users|sort(attribute='username') %}
+           {% if not u.username == user.username%}
+           {% if not g.user.is_following(u) %}
              <td>   | {{u.username}} <a href="{{url_for('follow', username = u.username)}}">Friend</a></td>
              {% endif %}
              {% endif %}
@@ -64,22 +64,33 @@
         <tbody>
           <tr>
            
+           {% set platform = [] %} 
            {% for u in users %}
                 {% if not u.username == user.username%}
             {% if  g.user.is_bestfriend(u) %}
-
+             
+                  {% if platform.append(true) %} 
+                  {% endif %}
+        
             <td> |{{u.username}}<a href="{{url_for('bestfriendfun', username = u.username)}}">Bestfriend</a></td>
              {% endif %}
+            
              {% endif %}
+            
              {% endfor %}
             
+             
           </tr>
        </tbody>
       </table>
 <table class="table table-bestfriend">
         <thead>
           <tr>
+            
+            {% if  not platform[-1] == true %}
+              
             <th>Add BestFriend</th>
+            
           </tr>
         </thead>
         <tbody>
@@ -95,6 +106,7 @@
              {% endfor %}
             
           </tr>
+           {% endif %}
        </tbody>
       </table>
 <table class="table table-deletefriend">
